@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tempo Classes Map</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: url('https://theemon.com/f/fit-fab/LivePreview/assets/images/home_1_slider_1.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+        }
+
+        #textBox {
+            width: 190px;
+            height: 10px;
+            padding: 5px;
+            margin-top: 15px;
+            text-align-last: center;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            padding: 10px;
+        }
+
+        .filter {
+            width: 150px;
+            height: 150px;
+            margin: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .filter:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        label {
+            color: #fff;
+            margin-bottom: 5px;
+            display: block;
+            text-align: center;
+            padding: 2px;
+        }
+
+        /* Common class for filter labels to align them to the left */
+        .filter-label {
+            text-align: left;
+        }
+
+        select {
+            width: 200px;
+            height: 30px;
+            padding: 5px;
+            margin-top: 5px;
+            text-align-last: center;
+        }
+
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .first-row-cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .card {
+            background-color: rgba(210, 210, 200, 210);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 400px;
+            width: 30%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+        }
+
+        h2 {
+            color: #000;
+            margin-top: 0;
+        }
+
+        p {
+            margin: 0;
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tempo Classes Map</h1>
+
+
+    <label for="activityFilter" class="filter-label">Activity</label>
+    <select id="activityFilter" onchange="filterChanged()">
+        <option value="">Any</option>
+        <option value="Weightlifting">Weightlifting</option>
+        <option value="Functional Movement">Functional Movement</option>
+        <option value="HIIT">HIIT</option>
+        <option value="Bodyweight Strength">Bodyweight Strength</option>
+        <option value="Challenges">Challenges</option>
+        <option value="Stretch">Stretch</option>
+        <option value="Bodyweight Cardio">Bodyweight Cardio</option>
+        <option value="Foam Rolling">Foam Rolling</option>
+        <option value="Meditation">Meditation</option>
+        <option value="Boxing">Boxing</option>
+        <option value="Yoga">Yoga</option>
+        <option value="Pilates">Pilates</option>
+        <option value="Barre">Barre</option>
+    </select>
+
+    <label for="bodyAreaFilter" class="filter-label">Body Area</label>
+    <select id="bodyAreaFilter" onchange="filterChanged()">
+        <option value="">Any</option>
+        <option value="UPPER_BODY">Upper Body</option>
+        <option value="LOWER_BODY">Lower Body</option>
+        <option value="FULL_BODY">Full Body</option>
+        <option value="CORE">Core</option>
+    </select>
+
+    <label for="classStyleFilter" class="filter-label">Class Style</label>
+    <select id="classStyleFilter" onchange="filterChanged()">
+        <option value="">Any</option>
+        <option value="Other">Other</option>
+        <option value="StrengthTraining">Strength Training</option>
+        <option value="Mobility">Mobility</option>
+        <option value="HIIT">HIIT</option>
+    </select>
+
+    <label for="classTypeFilter" class="filter-label">Class Type</label>
+    <select id="classTypeFilter" onchange="filterChanged()">
+        <option value="">Any</option>
+        <option value="Strength">Strength</option>
+        <option value="Recovery">Recovery</option>
+        <option value="Cardio">Cardio</option>
+    </select>
+
+
+
+    <label for="difficultyFilter" class="filter-label">Difficulty</label>
+    <select id="difficultyFilter" onchange="filterChanged()">
+        <option value="">Any</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+    </select>
+
+
+
+    <label for="durationMinCohortFilter" class="filter-label">Duration Min Cohort</label>
+    <select id="durationMinCohortFilter" onchange="filterChanged()">
+        <option value="">Any</option>
+        <option value="00-20">00-20</option>
+        <option value="20-40">20-40</option>
+        <option value="40-60">40-60</option>
+        <option value="60+">60+</option>
+    </select>
+
+    <label for="experienceLevelFilter" class="filter-label">Experience Level</label>
+    <select id="experienceLevelFilter" onchange="filterChanged()">
+        <option value="">Any</option>
+        <option value="INTERMEDIATE">Intermediate</option>
+        <option value="BEGINNER">Beginner</option>
+        <option value="ADVANCED">Advanced</option>
+        <option value="ALL_LEVELS">All Levels</option>
+    </select>
+
+    <label for="guidelinesFilter" class="filter-label">Guidelines</label>
+    <select id="guidelinesFilter" onchange="filterChanged()">
+        <option value="">Any</option>
+        <option value="New">New</option>
+        <option value="Old">Old</option>
+    </select>
+
+    <label for="instructorNameFilter" class="filter-label">Instructor Name</label>
+    <select id="instructorNameFilter" onchange="filterChanged()">
+        <option value="">Any</option>
+        <option value="Colby & Cole">Colby & Cole</option>
+        <option value="Breann Mitchell">Breann Mitchell</option>
+        <option value="Zach Seale">Zach Seale</option>
+        <option value="Jonathan Ibrahim">Jonathan Ibrahim</option>
+        <option value="Cole Charlton">Cole Charlton</option>
+        <option value="Clarence Hairston">Clarence Hairston</option>
+        <option value="Colby Landry">Colby Landry</option>
+        <option value="Trish Poulose">Trish Poulose</option>
+        <option value="Alex & Clarence">Alex & Clarence</option>
+        <option value="Alex & Melissa">Alex & Melissa</option>
+        <option value="Tempo Coaches">Tempo Coaches</option>
+        <option value="Colby & Melissa">Colby & Melissa</option>
+        <option value="Clarence & Cole">Clarence & Cole</option>
+        <option value="Alex & Bryan">Alex & Bryan</option>
+        <option value="Jeremy Falk">Jeremy Falk</option>
+        <option value="Clarence & Jonathan">Clarence & Jonathan</option>
+        <option value="Winter Athlete">Winter Athlete</option>
+        <option value="Bryan Fobbs">Bryan Fobbs</option>
+        <option value="Raychel Epperson">Raychel Epperson</option>
+        <option value="Nan Luma">Nan Luma</option>
+        <option value="Alex Higa">Alex Higa</option>
+        <option value="Melissa Boyd">Melissa Boyd</option>
+        <option value="Natalia Roberts">Natalia Roberts</option>
+        <option value="Lindsey Vonn">Lindsey Vonn</option>
+        <option value="Guest Coach">Guest Coach</option>
+    </select>
+
+    <label for="textBox"> </label>
+    <input type="text" id="textBox" readonly>
+
+    <div class="first-row-cards-container" id="first-row-cards-container"></div>
+    <div class="cards-container" id="remaining-cards"></div>
+
+    <script>
+        function filterChanged() {
+            console.log('Filter changed!');
+            filterClicked();
+        }
+
+        function filterClicked() {
+            const filters = {
+                ACTIVITY: document.getElementById('activityFilter').value,
+                BODY_AREA: document.getElementById('bodyAreaFilter').value,
+                CLASS_STYLE: document.getElementById('classStyleFilter').value,
+                CLASS_TYPE: document.getElementById('classTypeFilter').value,
+                DIFFICULTY: document.getElementById('difficultyFilter').value,
+                DURATION_MIN_COHORT: document.getElementById('durationMinCohortFilter').value,
+                EXPERIENCE_LEVEL: document.getElementById('experienceLevelFilter').value,
+                GUIDELINES: document.getElementById('guidelinesFilter').value,
+                INSTRUCTOR_NAME: document.getElementById('instructorNameFilter').value,
+            };
+
+            const apiUrl = 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?';
+            const filterParams = Object.entries(filters)
+                .filter(([_, value]) => value)
+                .map(([key, value]) => `${key}=eq.${value}`)
+                .join('&');
+
+            const fullUrl = apiUrl + filterParams + '&select=*';
+
+            fetch(fullUrl, {
+                method: 'GET',
+                headers: {
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvdHJya3d6ZW5pemJqYWpzdXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzExMjA0NjYsImV4cCI6MTk4NjY5NjQ2Nn0.rGdc8twElGQVofuSAZPDKkWovdCMGxjZjQxTuM_SAvg',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvdHJya3d6ZW5pemJqYWpzdXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzExMjA0NjYsImV4cCI6MTk4NjY5NjQ2Nn0.rGdc8twElGQVofuSAZPDKkWovdCMGxjZjQxTuM_SAvg',
+                    'Range': '0-6090'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API Response:', data);
+
+                    if (Array.isArray(data)) {
+                        document.getElementById('first-row-cards-container').innerHTML = '';
+                        document.getElementById('remaining-cards').innerHTML = '';
+                        document.getElementById('textBox').value = ` ${data.length} classe/s found`;
+
+                        data.forEach((item, index) => {
+                            if (index < 3) {
+                                createCard(item, 'first-row-cards-container');
+                            } else {
+                                createCard(item, 'remaining-cards');
+                            }
+                        });
+                    } else {
+                        console.log(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('API Error:', error);
+                });
+        }
+
+        function createCard(data, containerId) {
+            const cardsContainer = document.getElementById(containerId);
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <h2> ${data.TITLE}</h2>
+                <p>Coach: ${data.INSTRUCTOR_NAME}</p>
+                <p>Activity: ${data.ACTIVITY}</p>
+                <p>Body Area: ${data.BODY_AREA}</p>
+                <p>Class Rating: ${data.CLASS_RATING}</p>
+                <p>Class Style: ${data.CLASS_STYLE}</p>
+                <p>Class Type: ${data.CLASS_TYPE}</p>
+                <p>Created At: ${data.CREATED_AT}</p>
+                <p>Description: ${data.DESCRIPTION}</p>
+                <p>Difficulty: ${data.DIFFICULTY}</p>
+                <p>Duration Min Cohort: ${data.DURATION_MIN_COHORT}</p>
+                <p>Experience Level: ${data.EXPERIENCE_LEVEL}</p>
+                <p>Guidelines: ${data.GUIDELINES}</p>
+                <p>Instructor Rating: ${data.INSTRUCTOR_RATING}</p>
+                <p>Publish Time: ${data.PUBLISH_TIME}</p>
+                <p>Subactivity: ${data.SUBACTIVITY}</p>
+            `;
+            cardsContainer.appendChild(card);
+        }
+    </script>
+
+</body>
+
+</html>
