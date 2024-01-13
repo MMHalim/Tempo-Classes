@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tempo Classes Map</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: url('https://production-trusted.s3.amazonaws.com/media-file-Edit_121223_VOD_Melissa_Alex_30m_Full_Body_Build_DB_Goblet_Squat_AMRAP_fc96bb8d-50e0-4716-840c-34938c0c64e0.jpg') no-repeat center center fixed;
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+        }
+
+        #textBox {
+            width: 190px;
+            height: 15px;
+            padding: 5px;
+            margin-top: 15px;
+            text-align-last: center;
+            border-radius: 8px;
+            /* Adjust the value to control the roundness */
+            background-color: rgba(255, 255, 255, 0.7);
+            /* Optional: Add a background color */
+        }
+
+        .drawer {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            left: -250px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            transition: left 0.3s ease;
+        }
+
+        .drawer a {
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 15px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .drawer a:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            padding: 10px;
+        }
+
+        .filter {
+            width: 150px;
+            height: 150px;
+            margin: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+
+        }
+
+        .filter:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        label {
+            color: #fff;
+            margin-bottom: 5px;
+            display: block;
+            text-align: center;
+            padding: 2px;
+        }
+
+        .filter-label {
+            text-align: left;
+        }
+
+        select {
+            width: 200px;
+            height: 30px;
+            padding: 5px;
+            margin-top: 5px;
+            text-align-last: center;
+            border-radius: 8px;
+            /* Adjust the value to control the roundness */
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .first-row-cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .card {
+            background-color: rgba(210, 210, 200, 210);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 400px;
+            width: 30%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+        }
+
+        h2 {
+            color: #000;
+            margin-top: 0;
+        }
+
+        p {
+            margin: 0;
+            color: #000;
+        }
+
+        #toggle-btn {
+            font-size: 20px;
+            color: #fff;
+            cursor: pointer;
+            position: fixed;
+            top: 16px;
+            left: 40-px;
+            z-index: 1;
+            padding: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header style="display: flex; align-items: center; flex-direction: row;">
+        <span id="toggle-btn" onclick="toggleDrawer()">&#9654;</span>
+        <h1 style="margin-left: 50px;">Tempo Classes Map</h1>
+    </header>
+
+
+    <div class="drawer">
+
+        <button onclick="resetFilters()" style="background-color: #4CAF50; /* Green */
+                                       border: none;
+                                       color: white;
+                                       padding: 10px 80px;
+                                       text-align: center;
+                                       text-decoration: none;
+                                       display: inline-block;
+                                       font-size: 16px;
+                                       margin: 10px 0;
+                                       cursor: pointer;
+                                       border-radius: 5px;">
+            Reset
+        </button>
+        <br>
+        <br>
+        <label for="activityFilter" class="filter-label">Activity</label>
+        <select id="activityFilter" class="filter-select" data-api-endpoint="/api/activityOptions"
+            onchange="filterChanged()">
+            <option value="">Any</option>
+        </select>
+
+        <label for="equipmentFilter" class="filter-label">Equipments</label>
+        <select id="equipmentFilter" class="filter-select" data-api-endpoint="/api/equipmentOptions"
+            onchange="filterChanged()">
+            <option value="">Any</option>
+        </select>
+
+        <label for="bodyAreaFilter" class="filter-label">Body Area</label>
+        <select id="bodyAreaFilter" class="filter-select" data-api-endpoint="/api/bodyAreaOptions"
+            onchange="filterChanged()">
+            <option value="">Any</option>
+        </select>
+
+        <label for="classStyleFilter" class="filter-label">Class Style</label>
+        <select id="classStyleFilter" class="filter-select" data-api-endpoint="/api/classStyleOptions"
+            onchange="filterChanged()">
+            <option value="">Any</option>
+        </select>
+
+        <label for="classTypeFilter" class="filter-label">Class Type</label>
+        <select id="classTypeFilter" class="filter-select" data-api-endpoint="/api/classTypeOptions"
+            onchange="filterChanged()">
+            <option value="">Any</option>
+        </select>
+
+        <label for="difficultyFilter" class="filter-label">Difficulty</label>
+        <select id="difficultyFilter" class="filter-select" data-api-endpoint="/api/difficultyOptions"
+            onchange="filterChanged()">
+            <option value="">Any</option>
+        </select>
+
+        <label for="durationMinCohortFilter" class="filter-label">Duration Min Cohort</label>
+        <select id="durationMinCohortFilter" class="filter-select" data-api-endpoint="/api/durationMinCohortOptions"
+            onchange="filterChanged()">
+            <option value="">Any</option>
+        </select>
+
+        <label for="experienceLevelFilter" class="filter-label">Experience Level</label>
+        <select id="experienceLevelFilter" class="filter-select" data-api-endpoint="/api/experienceLevelOptions"
+            onchange="filterChanged()">
+            <option value="">Any</option>
+        </select>
+
+        <label for="guidelinesFilter" class="filter-label">Guidelines</label>
+        <select id="guidelinesFilter" class="filter-select" data-api-endpoint="/api/guidelinesOptions"
+            onchange="filterChanged()">
+            <option value="">Any</option>
+        </select>
+
+        <label for="instructorNameFilter" class="filter-label">Instructor Name</label>
+        <select id="instructorNameFilter" class="filter-select" data-api-endpoint="/api/instructorNameOptions"
+            onchange="filterChanged()">
+            <option value="">Any</option>
+        </select>
+
+
+        <label for="textBox"> </label>
+        <input type="text" id="textBox" readonly>
+    </div>
+
+    <div class="first-row-cards-container" id="first-row-cards-container"></div>
+    <div class="cards-container" id="remaining-cards"></div>
+
+    <script>
+        let isDrawerOpen = false;
+
+        function toggleDrawer() {
+            const drawer = document.querySelector('.drawer');
+            const toggleBtn = document.getElementById('toggle-btn');
+
+            if (isDrawerOpen) {
+                drawer.style.left = '-250px';
+                toggleBtn.style.transform = 'rotate(0deg)';
+            } else {
+                drawer.style.left = '0';
+                toggleBtn.style.transform = 'rotate(90deg)';
+            }
+
+            isDrawerOpen = !isDrawerOpen;
+        }
+
+        function loadFilterOptions(filterId, endpoint, key) {
+            fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvdHJya3d6ZW5pemJqYWpzdXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzExMjA0NjYsImV4cCI6MTk4NjY5NjQ2Nn0.rGdc8twElGQVofuSAZPDKkWovdCMGxjZjQxTuM_SAvg', // Replace with your API key
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvdHJya3d6ZW5pemJqYWpzdXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzExMjA0NjYsImV4cCI6MTk4NjY5NjQ2Nn0.rGdc8twElGQVofuSAZPDKkWovdCMGxjZjQxTuM_SAvg', // Replace with your bearer token
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const selectElement = document.getElementById(filterId);
+                    selectElement.innerHTML = '<option value="">Any</option>';
+
+                    const uniqueOptions = Array.from(new Set(data.map(item => item[key])));
+
+                    uniqueOptions.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option;
+                        optionElement.textContent = option;
+                        selectElement.appendChild(optionElement);
+                    });
+                })
+                .catch(error => {
+                    console.error(`Error fetching options for ${filterId}:`, error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadFilterOptions('activityFilter', 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?select=ACTIVITY', 'ACTIVITY');
+            loadFilterOptions('equipmentFilter', 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?select=required_equipment', 'required_equipment');
+            loadFilterOptions('bodyAreaFilter', 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?select=BODY_AREA', 'BODY_AREA');
+            loadFilterOptions('classStyleFilter', 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?select=CLASS_STYLE', 'CLASS_STYLE');
+            loadFilterOptions('classTypeFilter', 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?select=CLASS_TYPE', 'CLASS_TYPE');
+            loadFilterOptions('difficultyFilter', 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?select=DIFFICULTY', 'DIFFICULTY');
+            loadFilterOptions('durationMinCohortFilter', 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?select=DURATION_MIN_COHORT', 'DURATION_MIN_COHORT');
+            loadFilterOptions('experienceLevelFilter', 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?select=EXPERIENCE_LEVEL', 'EXPERIENCE_LEVEL');
+            loadFilterOptions('guidelinesFilter', 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?select=GUIDELINES', 'GUIDELINES');
+            loadFilterOptions('instructorNameFilter', 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?select=instructor_name', 'instructor_name');
+        });
+
+        function filterChanged() {
+
+            filterClicked();
+        }
+
+        function filterClicked() {
+            const filters = {
+                ACTIVITY: document.getElementById('activityFilter').value,
+                BODY_AREA: document.getElementById('bodyAreaFilter').value,
+                CLASS_STYLE: document.getElementById('classStyleFilter').value,
+                required_equipment: document.getElementById('equipmentFilter').value,
+                CLASS_TYPE: document.getElementById('classTypeFilter').value,
+                DIFFICULTY: document.getElementById('difficultyFilter').value,
+                DURATION_MIN_COHORT: document.getElementById('durationMinCohortFilter').value,
+                EXPERIENCE_LEVEL: document.getElementById('experienceLevelFilter').value,
+                GUIDELINES: document.getElementById('guidelinesFilter').value,
+                INSTRUCTOR_NAME: document.getElementById('instructorNameFilter').value,
+            };
+
+            const apiUrl = 'https://xotrrkwzenizbjajsuww.supabase.co/rest/v1/Classes?';
+            const filterParams = Object.entries(filters)
+                .filter(([_, value]) => value)
+                .map(([key, value]) => `${key}=eq.${value}`)
+                .join('&');
+
+            const fullUrl = apiUrl + filterParams + '&select=*';
+
+            fetch(fullUrl, {
+                method: 'GET',
+                headers: {
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvdHJya3d6ZW5pemJqYWpzdXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzExMjA0NjYsImV4cCI6MTk4NjY5NjQ2Nn0.rGdc8twElGQVofuSAZPDKkWovdCMGxjZjQxTuM_SAvg', // Replace with your API key
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvdHJya3d6ZW5pemJqYWpzdXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzExMjA0NjYsImV4cCI6MTk4NjY5NjQ2Nn0.rGdc8twElGQVofuSAZPDKkWovdCMGxjZjQxTuM_SAvg', // Replace with your bearer token
+                    'Range': '0-60900'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API Response:', data);
+
+                    if (Array.isArray(data)) {
+                        document.getElementById('first-row-cards-container').innerHTML = '';
+                        document.getElementById('remaining-cards').innerHTML = '';
+                        document.getElementById('textBox').value = ` ${data.length} classe/s found`;
+
+                        data.forEach((item, index) => {
+                            if (index < 4) {
+                                createCard(item, 'first-row-cards-container');
+                            } else {
+                                createCard(item, 'remaining-cards');
+                            }
+                        });
+                    } else {
+                        console.log(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('API Error:', error);
+                });
+        }
+
+        function resetFilters() {
+
+            const areAllFiltersEmpty = Array.from(document.querySelectorAll('.filter-select')).every(select => select.value === '');
+
+            if (areAllFiltersEmpty) {
+                return;
+            } else {
+                document.getElementById('activityFilter').value = '';
+                document.getElementById('bodyAreaFilter').value = '';
+                document.getElementById('classStyleFilter').value = '';
+                document.getElementById('classTypeFilter').value = '';
+                document.getElementById('difficultyFilter').value = '';
+                document.getElementById('durationMinCohortFilter').value = '';
+                document.getElementById('experienceLevelFilter').value = '';
+                document.getElementById('guidelinesFilter').value = '';
+                document.getElementById('equipmentFilter').value = '';
+                document.getElementById('instructorNameFilter').value = '';
+                document.getElementById('first-row-cards-container').innerHTML = '';
+                document.getElementById('remaining-cards').innerHTML = '';
+                document.getElementById('textBox').value = '';
+            }
+
+        }
+
+        function createCard(data, containerId) {
+            const cardsContainer = document.getElementById(containerId);
+            const card = document.createElement('div');
+            card.className = 'card';
+            const isNew = data.GUIDELINES === 'New';
+            card.innerHTML = `
+    <h2><u><b>${data.title}</b></u></h2><br>
+    <p><u><b>Coach:</b></u> ${data.instructor_name}</p>
+    <p><u><b>Activity:</b></u> ${data.ACTIVITY}</p>
+    <p><u><b>Required Equipments:</b></u> ${data.required_equipment}</p><br>
+    <img src="${data.full_resolution_thumbnail_url}" alt="Preview Photo" style="width: 100%; height: auto;"><br>
+    <br><p><u><b>Description:</b></u> ${data.DESCRIPTION}</p><br>
+    <p><u><b>Experience Level:</b></u> ${data.EXPERIENCE_LEVEL}</p>
+    <p><u><b>Class Status:</b></u> ${isNew ? '<span style="color: red;"><u><b>New</b></u></span>' : data.GUIDELINES}</p>
+    <p><u><b>Duration:</b></u> ${data.DURATION_MIN_COHORT}</p>
+    <p><u><b>Publish Time:</b></u> ${data.publish_time}</p>
+`;
+            cardsContainer.appendChild(card);
+        }
+    </script>
+
+</body>
+
+</html>
