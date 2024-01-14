@@ -84,6 +84,7 @@
             display: block;
             text-align: center;
             padding: 2px;
+            font-size: 20px;
         }
 
         .filter-label {
@@ -99,6 +100,7 @@
             border-radius: 8px;
             /* Adjust the value to control the roundness */
             background-color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
         }
 
         .cards-container {
@@ -158,19 +160,11 @@
 
     <div class="drawer">
 
-        <button onclick="resetFilters()" style="background-color: #4CAF50; /* Green */
-                                       border: none;
-                                       color: white;
-                                       padding: 10px 80px;
-                                       text-align: center;
-                                       text-decoration: none;
-                                       display: inline-block;
-                                       font-size: 16px;
-                                       margin: 10px 0;
-                                       cursor: pointer;
-                                       border-radius: 5px;">
-            Reset
-        </button>
+        <button onclick="resetFilters()"
+            style="background-color: #4CAF50; border: none; color: white; padding: 10px 80px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 10px 0; cursor: pointer; border-radius: 5px;">Reset</button>
+        <br>
+        <label for="textBox"> </label>
+        <input type="text" id="textBox" readonly>
         <br>
         <br>
         <label for="activityFilter" class="filter-label">Activity</label>
@@ -234,8 +228,7 @@
         </select>
 
 
-        <label for="textBox"> </label>
-        <input type="text" id="textBox" readonly>
+
     </div>
 
     <div class="first-row-cards-container" id="first-row-cards-container"></div>
