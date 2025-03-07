@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soft Skills</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        h1 {
+            font-size: 36px;
+            color: #d9534f;
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            color: #5bc0de;
+            margin-bottom: 30px;
+        }
+        .card {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px;
+            width: 280px;
+            display: inline-block;
+            vertical-align: top;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #d9534f;
+            font-size: 20px;
+        }
+        .card p {
+            text-align: left;
+            line-height: 1.5;
+        }
+        .card a {
+            color: #5bc0de;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .card a:hover {
+            text-decoration: underline;
+        }
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        /* Toggle switch styles */
+        .toggle-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .toggle-switch input {
+            display: none;
+        }
+        .toggle-switch label {
+            cursor: pointer;
+            width: 50px;
+            height: 25px;
+            background-color: #ccc;
+            display: inline-block;
+            border-radius: 25px;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+        .toggle-switch label:before {
+            content: '';
+            position: absolute;
+            width: 21px;
+            height: 21px;
+            background-color: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        .toggle-switch input:checked + label {
+            background-color: #4caf50;
+        }
+        .toggle-switch input:checked + label:before {
+            transform: translateX(25px);
+        }
+        .toggle-switch .icon {
+            margin-left: 10px;
+            font-size: 20px;
+        }
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #333;
+            color: #f9f9f9;
+        }
+        body.dark-mode .card {
+            background-color: #444;
+            color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toggle-switch">
+        <input type="checkbox" id="theme-toggle">
+        <label for="theme-toggle"></label>
+        <span class="icon" id="theme-icon">🌞</span>
+    </div>
+
+    <h1>Learn The Soft Skills</h1>
+    <h2>Free Resources To Boost Your Income</h2>
+
+    <!-- Cards go here -->
+
+    <!-- Modal -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <iframe id="videoFrame" width="100%" height="315" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        function openModal(videoUrl) {
+            document.getElementById('videoFrame').src = videoUrl;
+            document.getElementById('myModal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('myModal').style.display = "none";
+            document.getElementById('videoFrame').src = "";
+        }
+
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                body.classList.add('dark-mode');
+                themeIcon.textContent = '🌜';
+            } else {
+                body.classList.remove('dark-mode');
+                themeIcon.textContent = '🌞';
+            }
+        });
+    </script>
+
+</body>
+</html>
