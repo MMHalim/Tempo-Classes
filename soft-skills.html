@@ -325,6 +325,25 @@
                 themeIcon.textContent = '🌞';
             }
         });
+
+const logo = document.getElementById("logo"); // Assuming the image has an ID of 'logo'
+
+// Function to update the logo based on dark mode
+function updateLogo() {
+    const isDarkMode = document.documentElement.classList.contains("dark"); // Adjust this based on your dark mode detection
+    if (isDarkMode) {
+        logo.src = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview%20(1).png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0RGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcgKDEpLnBuZyIsImlhdCI6MTc0MjU4NTMyNywiZXhwIjoxNzc0MTIxMzI3fQ.Y3_IFadlNODfFKQNZ63OoNCJF-jZmcYqXrYiksO3gw0";
+    } else {
+        logo.src = "your_light_mode_logo_url_here"; // Replace with the light mode logo
+    }
+}
+
+// Listen for dark mode changes
+const observer = new MutationObserver(updateLogo);
+observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+// Run the function on page load
+updateLogo();
     </script>
 
 </body>
