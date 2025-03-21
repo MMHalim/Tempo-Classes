@@ -128,8 +128,8 @@
     </style>
 </head>
 <body>
-        <div class="header">
-        <img id="logo" src="https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0RGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzQyNTg0MjAxLCJleHAiOjE3NzQxMjAyMDF9.XuyTUVVpMJjsl7K_Lg_E759b5V9mnUGGnkTjNbRXlo0" alt="Logo">
+    <div class="header">
+        <img id="logo" alt="Logo">
         <span class="header-text">Tempo L&D Hub</span>
     </div>
 
@@ -138,7 +138,7 @@
         <label for="theme-toggle"></label>
         <span class="icon" id="theme-icon">🌞</span>
     </div>
-   
+    
     <h1>Learn The Soft Skills</h1>
     <h2>Free Resources To Boost Your Income</h2>
 
@@ -300,8 +300,8 @@
             <iframe id="videoFrame" width="100%" height="315" src="" frameborder="0" allowfullscreen></iframe>
         </div>
     </div>
-
-    <script>
+    
+       <script>
         function openModal(videoUrl) {
             document.getElementById('videoFrame').src = videoUrl;
             document.getElementById('myModal').style.display = "block";
@@ -317,6 +317,9 @@
         const body = document.body;
         const logo = document.getElementById("logo");
 
+        const lightModeLogo = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzQyNTg0MjAxLCJleHAiOjE3NzQxMjAyMDF9.XuyTUVVpMJjsl7K_Lg_E759b5V9mnUGGnkTjNbRXlo0";
+        const darkModeLogo = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview%20(1).png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcgKDEpLnBuZyIsImlhdCI6MTc0MjU4NTMyNywiZXhwIjoxNzc0MTIxMzI3fQ.Y3_IFadlNODfFKQNZ63OoNCJF-jZmcYqXrYiksO3gw0";
+
         themeToggle.addEventListener('change', () => {
             if (themeToggle.checked) {
                 body.classList.add('dark-mode');
@@ -331,11 +334,7 @@
         // Function to update the logo based on dark mode
         function updateLogo() {
             const isDarkMode = body.classList.contains("dark-mode"); // Check the body for the dark-mode class
-            if (isDarkMode) {
-                logo.src = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview%20(1).png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcgKDEpLnBuZyIsImlhdCI6MTc0MjU4NTMyNywiZXhwIjoxNzc0MTIxMzI3fQ.Y3_IFadlNODfFKQNZ63OoNCJF-jZmcYqXrYiksO3gw0";
-            } else {
-                logo.src = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzQyNTg0MjAxLCJleHAiOjE3NzQxMjAyMDF9.XuyTUVVpMJjsl7K_Lg_E759b5V9mnUGGnkTjNbRXlo0";
-            }
+            logo.src = isDarkMode ? darkModeLogo : lightModeLogo;
         }
 
         // Run the function on page load
