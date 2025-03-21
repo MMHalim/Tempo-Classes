@@ -315,6 +315,7 @@
         const themeToggle = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
         const body = document.body;
+        const logo = document.getElementById("logo");
 
         themeToggle.addEventListener('change', () => {
             if (themeToggle.checked) {
@@ -324,26 +325,21 @@
                 body.classList.remove('dark-mode');
                 themeIcon.textContent = '🌞';
             }
+            updateLogo(); // Call updateLogo whenever the theme changes
         });
 
-const logo = document.getElementById("logo"); // Assuming the image has an ID of 'logo'
+        // Function to update the logo based on dark mode
+        function updateLogo() {
+            const isDarkMode = body.classList.contains("dark-mode"); // Check the body for the dark-mode class
+            if (isDarkMode) {
+                logo.src = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview%20(1).png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcgKDEpLnBuZyIsImlhdCI6MTc0MjU4NTMyNywiZXhwIjoxNzc0MTIxMzI3fQ.Y3_IFadlNODfFKQNZ63OoNCJF-jZmcYqXrYiksO3gw0";
+            } else {
+                logo.src = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzQyNTg0MjAxLCJleHAiOjE3NzQxMjAyMDF9.XuyTUVVpMJjsl7K_Lg_E759b5V9mnUGGnkTjNbRXlo0";
+            }
+        }
 
-// Function to update the logo based on dark mode
-function updateLogo() {
-    const isDarkMode = document.documentElement.classList.contains("dark"); // Adjust this based on your dark mode detection
-    if (isDarkMode) {
-        logo.src = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview%20(1).png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0RGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcgKDEpLnBuZyIsImlhdCI6MTc0MjU4NTMyNywiZXhwIjoxNzc0MTIxMzI3fQ.Y3_IFadlNODfFKQNZ63OoNCJF-jZmcYqXrYiksO3gw0";
-    } else {
-        logo.src = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0RGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzQyNTg0MjAxLCJleHAiOjE3NzQxMjAyMDF9.XuyTUVVpMJjsl7K_Lg_E759b5V9mnUGGnkTjNbRXlo0"; // Replace with the light mode logo
-    }
-}
-
-// Listen for dark mode changes
-const observer = new MutationObserver(updateLogo);
-observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-
-// Run the function on page load
-updateLogo();
+        // Run the function on page load
+        updateLogo();
     </script>
 
 </body>
