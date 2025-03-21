@@ -32,14 +32,15 @@
             left: 10px;
         }
         #logo {
-            width: 120px; /* Adjust width */
-            height: auto; /* Maintain aspect ratio */
+            width: 120px; 
+            height: auto; 
             margin-right: 10px;
         }
         .header-text {
             font-size: 22px;
             font-weight: bold;
             color: #333;
+            transition: color 0.3s;
         }
         .card {
             border: 2px solid #ddd;
@@ -111,12 +112,17 @@
             margin-left: 10px;
             font-size: 20px;
         }
+        
+        /* Dark Mode Styles */
         body.dark-mode {
             background-color: #333;
             color: #f9f9f9;
         }
         body.dark-mode .card {
             background-color: #444;
+            color: #f9f9f9;
+        }
+        body.dark-mode .header-text {
             color: #f9f9f9;
         }
     </style>
