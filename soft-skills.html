@@ -300,8 +300,7 @@
             <iframe id="videoFrame" width="100%" height="315" src="" frameborder="0" allowfullscreen></iframe>
         </div>
     </div>
-    
-       <script>
+    <script>
         function openModal(videoUrl) {
             document.getElementById('videoFrame').src = videoUrl;
             document.getElementById('myModal').style.display = "block";
@@ -317,8 +316,9 @@
         const body = document.body;
         const logo = document.getElementById("logo");
 
-        const lightModeLogo = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzQyNTg0MjAxLCJleHAiOjE3NzQxMjAyMDF9.XuyTUVVpMJjsl7K_Lg_E759b5V9mnUGGnkTjNbRXlo0";
-        const darkModeLogo = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview%20(1).png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcgKDEpLnBuZyIsImlhdCI6MTc0MjU4NTMyNywiZXhwIjoxNzc0MTIxMzI3fQ.Y3_IFadlNODfFKQNZ63OoNCJF-jZmcYqXrYiksO3gw0";
+        // Use placeholder images for testing
+        const lightModeLogo = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0RGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzQyNjk5NzI1LCJleHAiOjE3NzQyMzU3MjV9.RZYz_dsK1HDz6Qu5_h_Ypqp3RsMyQCA6dN-GLOU5AIk";
+        const darkModeLogo = "https://kupaxfvjfobfdgtbfnnt.supabase.co/storage/v1/object/sign/ChatData/tempo_logo-removebg-preview%20(1).png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJDaGF0RGF0YS90ZW1wb19sb2dvLXJlbW92ZWJnLXByZXZpZXcgKDEpLnBuZyIsImlhdCI6MTc0MjY5OTYyNSwiZXhwIjoxNzc0MjM1NjI1fQ.xQDreJoZXsXwPPPCRmWlr2U7T2qlzv-9EbwVfheMitc";
 
         themeToggle.addEventListener('change', () => {
             if (themeToggle.checked) {
@@ -340,6 +340,7 @@
         // Run the function on page load
         updateLogo();
     </script>
+
 
 </body>
 </html>
