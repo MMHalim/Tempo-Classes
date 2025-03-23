@@ -125,6 +125,42 @@
         body.dark-mode .header-text {
             color: #f9f9f9;
         }
+
+        /* Modal Styles */
+        #videoModal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 700px;
+            position: relative;
+        }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -291,16 +327,17 @@
         <p>Article: <a href="https://www.mindtools.com/pages/article/newCDV_59.htm" target="_blank">Emotional Intelligence - EQ</a></p>
         <p>Free Course: Managing Emotions in Times of Uncertainty & Stress</p>
     </div>
-    <!-- Add more cards as needed -->
 
     <!-- Modal -->
-   <div id="videoModal">
+    <div id="videoModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">✖</span>
             <iframe id="videoFrame" width="560" height="315" frameborder="0" allowfullscreen></iframe>
         </div>
+    </div>
+
     <script>
-         function openModal(videoUrl) {
+        function openModal(videoUrl) {
             document.getElementById('videoFrame').src = videoUrl;
             document.getElementById('videoModal').style.display = "flex";
         }
@@ -339,7 +376,5 @@
         // Run the function on page load
         updateLogo();
     </script>
-
-
 </body>
 </html>
