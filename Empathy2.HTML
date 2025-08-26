@@ -1,785 +1,814 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Service Empathy Simulator for Tempo.fit</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .card {
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-                  0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      transition: transform 0.3s ease;
-    }
-    .card:hover { transform: translateY(-5px); }
-    .feedback-card, .suggestion-card, .history-item { animation: fadeIn 0.5s ease; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .loader {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Service Empathy Simulator for Tempo.fit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .feedback-card, .suggestion-card, .history-item {
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-  <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
-    <header class="text-center mb-8">
-      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">AI-Powered Empathy Simulator</h1>
-      <p id="header-subtitle" class="text-md text-gray-600 mt-2">Practice real-world Tempo.fit customer scenarios.</p>
-      <button id="logout-btn" class="hidden mt-2 text-sm text-red-600 hover:text-red-800 font-semibold">Logout</button>
-    </header>
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">AI-Powered Empathy Simulator</h1>
+            <p id="header-subtitle" class="text-md text-gray-600 mt-2">Practice real-world Tempo.fit customer scenarios.</p>
+            <button id="logout-btn" class="hidden mt-2 text-sm text-red-600 hover:text-red-800 font-semibold">Logout</button>
+        </header>
 
-    <!-- Auth View (Supabase) -->
-    <div id="auth-view" class="bg-white p-8 rounded-2xl shadow-lg max-w-md mx-auto">
-      <div id="login-form">
-        <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
-        <input type="email" id="login-email" placeholder="Email" class="w-full p-3 mb-4 border rounded">
-        <input type="password" id="login-password" placeholder="Password" class="w-full p-3 mb-4 border rounded">
-        <button id="login-btn" class="w-full bg-blue-500 text-white p-3 rounded">Login</button>
-        <p class="text-center mt-4">Don't have an account? <a href="#" id="show-register" class="text-blue-500">Register</a></p>
-      </div>
-      <div id="register-form" class="hidden">
-        <h2 class="text-2xl font-bold mb-4 text-center">Register</h2>
-        <input type="email" id="register-email" placeholder="Email" class="w-full p-3 mb-4 border rounded">
-        <input type="password" id="register-password" placeholder="Password" class="w-full p-3 mb-4 border rounded">
-        <button id="register-btn" class="w-full bg-green-500 text-white p-3 rounded">Register</button>
-        <p class="text-center mt-4">Already have an account? <a href="#" id="show-login" class="text-blue-500">Login</a></p>
-      </div>
-      <p id="auth-error" class="text-red-500 text-center mt-4"></p>
-    </div>
-
-    <!-- Main Menu View -->
-    <div id="main-menu" class="hidden text-center">
-      <div id="user-dashboard" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <button data-action="assigned" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
-          <h3 class="text-xl font-bold mb-2 text-gray-800">📝 My Assigned Scenarios</h3>
-          <p class="text-gray-600">Practice scenarios assigned to you by an admin.</p>
-        </button>
-        <button data-action="practice" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
-          <h3 class="text-xl font-bold mb-2 text-gray-800">🚀 Practice Random Scenarios</h3>
-          <p class="text-gray-600">Jump into a random multi-step simulation.</p>
-        </button>
-        <button data-action="quick-fire" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
-          <h3 class="text-xl font-bold mb-2 text-gray-800">⚡ AI Quick-Fire Round</h3>
-          <p class="text-gray-600">Face unique, AI-generated single-step problems.</p>
-        </button>
-        <button data-action="create" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
-          <h3 class="text-xl font-bold mb-2 text-gray-800">✍️ Create a Scenario</h3>
-          <p class="text-gray-600">Design a new custom scenario for your own practice.</p>
-        </button>
-        <button data-action="history" class="card bg-white p-6 rounded-lg cursor-pointer text-left col-span-1 md:col-span-2">
-          <h3 class="text-xl font-bold mb-2 text-gray-800">📈 View My History</h3>
-          <p class="text-gray-600">Review your past performance, feedback, and ideal responses.</p>
-        </button>
-      </div>
-      <button id="admin-dashboard-btn" class="hidden mt-6 card bg-indigo-600 text-white p-4 rounded-lg w-full md:w-1/2 mx-auto">
-        <h3 class="text-xl font-bold">👑 Admin Dashboard</h3>
-      </button>
-    </div>
-
-    <!-- Assigned Scenarios View -->
-    <div id="assigned-scenarios-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
-      <button class="back-to-menu-btn mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Menu</button>
-      <h2 class="text-3xl font-bold mb-4 text-center">My Assigned Scenarios</h2>
-      <div id="assigned-scenarios-container" class="space-y-4"></div>
-    </div>
-
-    <!-- Create Scenario View -->
-    <div id="create-scenario-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
-      <button class="back-to-menu-btn mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Menu</button>
-      <h2 class="text-2xl font-bold mb-4">✨ Create a Custom Scenario</h2>
-      <p class="text-gray-600 mb-4">Describe a customer service situation. The AI will generate a title, description, persona, and a 3-step dialogue tree for it.</p>
-      <label for="scenario-topic" class="block text-sm font-medium text-gray-700">Scenario Topic</label>
-      <input type="text" id="scenario-topic" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" placeholder="e.g., A customer's weights are not being recognized by the AI">
-      <div id="modal-loading" class="hidden flex-col items-center justify-center mt-4">
-        <div class="loader"></div>
-        <p class="text-gray-600 mt-2">Generating your custom scenario...</p>
-      </div>
-      <div class="mt-6 flex justify-end">
-        <button id="generate-scenario-btn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">Generate & Save</button>
-      </div>
-    </div>
-
-    <!-- History List View -->
-    <div id="history-list-view" class="hidden">
-      <button class="back-to-menu-btn mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Menu</button>
-      <h2 class="text-3xl font-bold mb-4 text-center">My Session History</h2>
-      <div id="history-list-container" class="space-y-4"></div>
-    </div>
-
-    <!-- History Detail View -->
-    <div id="history-detail-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
-      <button id="back-to-history-list-btn" class="mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to History</button>
-      <h2 id="history-detail-title" class="text-2xl font-bold mb-2"></h2>
-      <p class="text-lg font-semibold mb-4">Final Empathy Score: <span id="history-detail-score" class="text-blue-600"></span></p>
-      <button id="get-summary-btn" class="w-full mb-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">✨ Get Summary & Tip</button>
-      <div id="history-summary-container" class="hidden mb-4 p-4 bg-indigo-50 rounded-lg"></div>
-      <div id="history-detail-interactions" class="space-y-6"></div>
-    </div>
-
-    <!-- Simulator View -->
-    <div id="simulator" class="hidden bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
-      <div id="scenario-title" class="text-2xl font-bold mb-2 text-gray-900"></div>
-      <div id="customer-persona" class="text-sm text-gray-500 mb-4 italic"></div>
-      <div class="h-4 bg-gray-200 rounded-full mb-4 overflow-hidden">
-        <div id="empathy-meter" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 50%;"></div>
-      </div>
-      <p class="text-right text-sm text-gray-500 mb-4">Empathy Meter</p>
-      <div id="dialogue-container" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[100px]">
-        <p class="font-semibold text-gray-600 mb-2">Customer says:</p>
-        <p id="customer-dialogue" class="text-gray-800"></p>
-      </div>
-      <div id="response-area">
-        <div class="flex justify-between items-center mb-2">
-          <label for="user-response" class="block font-semibold text-gray-700">Your Response:</label>
-          <div>
-            <button id="analyze-tone-btn" class="text-sm text-indigo-600 hover:text-indigo-800 font-semibold mr-4">✨ Analyze Tone</button>
-            <button id="get-suggestions-btn" class="text-sm text-blue-600 hover:text-blue-800 font-semibold">✨ Get Suggestions</button>
-          </div>
-        </div>
-        <div id="tone-analysis-container" class="mb-4 hidden"></div>
-        <div id="suggestions-container" class="mb-4 hidden"></div>
-        <textarea id="user-response" class="w-full p-3 border border-gray-300 rounded-lg" rows="4" placeholder="Type your empathetic response here..."></textarea>
-        <button id="submit-response-btn" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">Submit for Feedback</button>
-      </div>
-      <div id="loading-indicator" class="hidden flex-col items-center justify-center mt-4">
-        <div class="loader"></div><p class="text-gray-600 mt-2">AI coach is thinking...</p>
-      </div>
-      <div id="feedback-container" class="mt-6 hidden"></div>
-      <div class="mt-6 flex justify-between items-center">
-        <button class="back-to-menu-btn bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">Back to Menu</button>
-        <button id="next-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg hidden">Next Step</button>
-      </div>
-    </div>
-
-    <!-- Completion Screen -->
-    <div id="completion-screen" class="hidden text-center bg-white p-8 rounded-2xl shadow-lg">
-      <h2 class="text-3xl font-bold text-green-600 mb-4">Scenario Complete!</h2>
-      <p id="final-feedback" class="text-lg text-gray-700 mb-6"></p>
-      <div class="flex justify-center space-x-4">
-        <button id="restart-scenario-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">Try Again</button>
-        <button id="choose-another-scenario-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg">Another Random Scenario</button>
-      </div>
-    </div>
-
-    <!-- Admin Dashboard View -->
-    <div id="admin-dashboard-view" class="hidden">
-      <button class="back-to-menu-btn mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Menu</button>
-      <h2 class="text-3xl font-bold mb-4 text-center">👑 Admin Dashboard</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <button data-action="admin-users" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
-          <h3 class="text-xl font-bold mb-2 text-gray-800">Manage Users</h3>
-          <p class="text-gray-600">View all users and assign scenarios to them.</p>
-        </button>
-        <button data-action="admin-sessions" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
-          <h3 class="text-xl font-bold mb-2 text-gray-800">Audit Sessions</h3>
-          <p class="text-gray-600">Review and manually edit feedback for all completed user sessions.</p>
-        </button>
-      </div>
-    </div>
-
-    <div id="admin-user-list-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
-      <button id="back-to-admin-dash-btn" class="mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Admin</button>
-      <h2 class="text-3xl font-bold mb-4 text-center">Manage Users</h2>
-      <div id="admin-user-list-container" class="space-y-2"></div>
-    </div>
-
-    <div id="admin-session-list-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
-      <button id="back-to-admin-dash-btn2" class="mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Admin</button>
-      <h2 class="text-3xl font-bold mb-4 text-center">Audit User Sessions</h2>
-      <div id="admin-session-list-container" class="space-y-4"></div>
-    </div>
-
-    <div id="assign-scenario-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"></div>
-
-  </div>
-
-  <script type="module">
-    // --- Supabase Auth (using your anon key) ---
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-    // --- Firebase Firestore (kept for data) ---
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import {
-      getFirestore, doc, getDoc, setDoc, updateDoc,
-      collection, addDoc, getDocs, query, where, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // Supabase config (Auth)
-    const supabaseUrl = "https://camonkvcskqeemsfsjea.supabase.co";
-    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhbW9ua3Zjc2txZWVtc2ZzamVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNTg1MTAsImV4cCI6MjA3MTczNDUxMH0.McthjvqNtUHfGhm5zAwicGwkt1CcsbVWjh_mohAPPDE";
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    // Firebase Firestore config (for existing data paths)
-    const firebaseConfig = typeof __firebase_config !== 'undefined'
-      ? JSON.parse(__firebase_config)
-      : { apiKey: "...", authDomain: "...", projectId: "..." };
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-    let db;
-    try {
-      const app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-    } catch (e) {
-      console.error("Firebase initialization failed:", e);
-    }
-
-    // --- App State ---
-    let userId = null;
-    let isAdmin = false;
-
-    const defaultScenarios = [
-      { id: 'default-0', title: "Tempo Move Connection Issue", isDefault: true, description: "A customer is frustrated because their Tempo Move won't connect to their TV.", persona: "Customer: Mark, a new user who was excited to start his first class. He's now annoyed and feels like the product is too complicated.", dialogueTree: [{ customer: "I've been trying for 30 minutes and my Tempo Move just won't show up on my TV! I'm about to miss my scheduled class. This is so frustrating." }, { customer: "I've tried restarting everything already. My iPhone is plugged into the Core, and the HDMI is in the TV. What else could it be?" }, { customer: "Okay, I checked and the TV is on the right HDMI input. It's working now! Thank you for walking me through that." }] },
-      { id: 'default-1', title: "30-Day Trial & Return Question", isDefault: true, description: "A customer is nearing the end of their 30-day trial and is considering a return.", persona: "Customer: Jessica, who likes the workouts but isn't sure if it's worth the price. She's anxious about getting stuck in a contract.", dialogueTree: [{ customer: "Hi, my 30-day trial is ending soon. I like the Tempo, but I'm not sure I can commit. What's the process if I decide to return it? I'm worried about hidden fees." }, { customer: "So as long as I have the original box, there's no restocking fee? That's good to know. Can I pause my membership instead of canceling?" }, { customer: "A membership pause is a great option. I think I'll do that and decide in a month. Thanks for explaining everything so clearly." }] },
-      { id: 'default-2', title: "AI Form Feedback Complaint", isDefault: true, description: "A long-time user is upset because they feel the AI form feedback is inaccurate.", persona: "Customer: Alex, an experienced lifter who has been using Tempo for 6 months. They are starting to question the value of the AI technology.", dialogueTree: [{ customer: "I have to say, I'm getting really disappointed with the form feedback. It keeps telling me my squat depth is wrong, but I know my form is solid. It's making me question the whole system." }, { customer: "I've already checked the lighting and made sure the area is clear. It feels like the AI just isn't as smart as it's supposed to be. Is there a way to recalibrate it?" }, { customer: "I didn't know you could submit a video for review. That's actually really helpful. I'll do that after my next workout. I appreciate you offering a real solution." }] }
-    ];
-
-    let currentScenario = null;
-    let lastPlayedScenarioId = null;
-    let currentStep = 0;
-    let empathyScore = 50;
-    let sessionInteractions = [];
-
-    const views = {
-      mainMenu: document.getElementById('main-menu'),
-      createScenario: document.getElementById('create-scenario-view'),
-      historyList: document.getElementById('history-list-view'),
-      historyDetail: document.getElementById('history-detail-view'),
-      simulator: document.getElementById('simulator'),
-      completion: document.getElementById('completion-screen'),
-      adminDashboard: document.getElementById('admin-dashboard-view'),
-      adminUserList: document.getElementById('admin-user-list-view'),
-      adminSessionList: document.getElementById('admin-session-list-view'),
-      assignedScenarios: document.getElementById('assigned-scenarios-view'),
-      auth: document.getElementById('auth-view'),
-    };
-
-    const loadingIndicator = document.getElementById('loading-indicator');
-
-    function showView(viewName) {
-      Object.values(views).forEach(view => view && view.classList.add('hidden'));
-      if (views[viewName]) views[viewName].classList.remove('hidden');
-    }
-
-    // ---------- Supabase Auth UI Logic ----------
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    const authError = document.getElementById('auth-error');
-
-    document.getElementById('show-register').addEventListener('click', (e) => {
-      e.preventDefault();
-      loginForm.classList.add('hidden');
-      registerForm.classList.remove('hidden');
-    });
-
-    document.getElementById('show-login').addEventListener('click', (e) => {
-      e.preventDefault();
-      registerForm.classList.add('hidden');
-      loginForm.classList.remove('hidden');
-    });
-
-    document.getElementById('register-btn').addEventListener('click', async () => {
-      const email = document.getElementById('register-email').value;
-      const password = document.getElementById('register-password').value;
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) authError.textContent = error.message;
-      else authError.textContent = "Registration successful. Please check your email to confirm.";
-    });
-
-    document.getElementById('login-btn').addEventListener('click', async () => {
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      authError.textContent = error ? error.message : "";
-    });
-
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
-    });
-
-    function applySession(session) {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (session?.user) {
-        userId = session.user.id;
-        const email = session.user.email || "";
-        isAdmin = email === 'admin@tempo.fit' || urlParams.get('admin') === 'true';
-
-        document.getElementById('header-subtitle').textContent = `Welcome, ${email}`;
-        document.getElementById('logout-btn').classList.remove('hidden');
-        if (isAdmin) document.getElementById('admin-dashboard-btn').classList.remove('hidden');
-
-        showView('mainMenu');
-        views.auth.classList.add('hidden');
-      } else {
-        userId = null;
-        isAdmin = urlParams.get('admin') === 'true';
-        document.getElementById('logout-btn').classList.add('hidden');
-        document.getElementById('admin-dashboard-btn').classList.toggle('hidden', !isAdmin);
-        document.getElementById('header-subtitle').textContent = "Practice real-world Tempo.fit customer scenarios.";
-        showView('auth');
-      }
-    }
-
-    // Initial session + listener
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      applySession(session);
-    })();
-
-    supabase.auth.onAuthStateChange((_event, session) => applySession(session));
-
-    // ---------- App Logic (unchanged, still using Firestore for data) ----------
-    async function getFromAI(prompt, schema = null) {
-      loadingIndicator.classList.remove('hidden');
-      document.getElementById('modal-loading')?.classList.remove('hidden');
-      let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-      const payload = { contents: chatHistory };
-      if (schema) payload.generationConfig = { responseMimeType: "application/json", responseSchema: schema };
-      const apiKey = "AIzaSyAhYDpHKXbTYQeGW3A-3g47XXDMGyB8NU0"; // add your Gemini key if needed
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-      try {
-        let response; let delay = 1000;
-        for (let i = 0; i < 5; i++) {
-          response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-          if (response.ok) break;
-          await new Promise(resolve => setTimeout(resolve, delay));
-          delay *= 2;
-        }
-        if (!response.ok) throw new Error(`API request failed`);
-        const result = await response.json();
-        const rawJson = result.candidates[0].content.parts[0].text;
-        return JSON.parse(rawJson.replace(/```json/g, '').replace(/```/g, '').trim());
-      } catch (error) {
-        console.error("Error with AI call:", error);
-        return null;
-      } finally {
-        loadingIndicator.classList.add('hidden');
-        document.getElementById('modal-loading')?.classList.add('hidden');
-      }
-    }
-
-    async function getAllScenarios() {
-      let scenarios = [...defaultScenarios];
-      if (userId && db) {
-        try {
-          const userScenariosRef = collection(db, `/artifacts/${appId}/users/${userId}/scenarios`);
-          const querySnapshot = await getDocs(userScenariosRef);
-          querySnapshot.forEach((docSnap) => {
-            scenarios.push({ id: docSnap.id, ...docSnap.data() });
-          });
-        } catch (error) {
-          console.error("Could not load user-created scenarios:", error);
-        }
-      }
-      return scenarios;
-    }
-
-    async function startRandomScenario() {
-      showView('simulator');
-      document.getElementById('scenario-title').textContent = "Finding a scenario...";
-      document.getElementById('customer-persona').textContent = "";
-      document.getElementById('customer-dialogue').innerHTML = '<div class="loader mx-auto"></div>';
-      document.getElementById('response-area').classList.add('hidden');
-
-      const scenarios = await getAllScenarios();
-      let availableScenarios = scenarios.filter(s => s.id !== lastPlayedScenarioId);
-      if (availableScenarios.length === 0) availableScenarios = scenarios;
-      if (availableScenarios.length > 0) {
-        const randomIndex = Math.floor(Math.random() * availableScenarios.length);
-        const chosenScenario = availableScenarios[randomIndex];
-        lastPlayedScenarioId = chosenScenario.id;
-        startScenario(chosenScenario);
-      } else {
-        document.getElementById('scenario-title').textContent = "Error";
-        document.getElementById('customer-dialogue').textContent = "No scenarios found. Please create one first.";
-      }
-    }
-
-    function startScenario(scenarioData) {
-      currentScenario = scenarioData;
-      currentStep = 0;
-      empathyScore = 50;
-      sessionInteractions = [];
-      showView('simulator');
-      loadStep();
-    }
-
-    function loadStep() {
-      const feedbackContainer = document.getElementById('feedback-container');
-      const suggestionsContainer = document.getElementById('suggestions-container');
-      const toneAnalysisContainer = document.getElementById('tone-analysis-container');
-      const nextBtn = document.getElementById('next-btn');
-      const responseArea = document.getElementById('response-area');
-      const userResponse = document.getElementById('user-response');
-
-      feedbackContainer.classList.add('hidden');
-      suggestionsContainer.classList.add('hidden');
-      toneAnalysisContainer.classList.add('hidden');
-      nextBtn.classList.add('hidden');
-      responseArea.classList.remove('hidden');
-      userResponse.value = '';
-
-      const stepData = currentScenario.dialogueTree[currentStep];
-      if (!stepData) {
-        showCompletionScreen();
-        return;
-      }
-
-      document.getElementById('scenario-title').textContent = currentScenario.title;
-      document.getElementById('customer-persona').textContent = currentScenario.persona;
-      document.getElementById('customer-dialogue').textContent = stepData.customer;
-      updateEmpathyMeter();
-    }
-
-    async function handleSubmitResponse() {
-      const userResponse = document.getElementById('user-response');
-      const responseText = userResponse.value.trim();
-      if (!responseText) return;
-      document.getElementById('response-area').classList.add('hidden');
-
-      const feedbackPrompt = `You are an expert customer service training coach for Tempo.fit. Evaluate a user's response. **Scenario:** ${currentScenario.title} | **Customer's Statement:** "${currentScenario.dialogueTree[currentStep].customer}" | **User's Response:** "${responseText}". Provide your evaluation as a JSON object: { "score": <integer 0-100>, "feedback": "<concise, constructive feedback>" }`;
-      const feedbackSchema = { type: "OBJECT", properties: { "score": { "type": "INTEGER" }, "feedback": { "type": "STRING" } }, required: ["score", "feedback"] };
-
-      const bestAnswerPrompt = `You are a customer service expert for Tempo.fit. **Scenario:** ${currentScenario.title} | **Customer's Statement:** "${currentScenario.dialogueTree[currentStep].customer}". Provide three distinct, ideal, and empathetic responses a top-tier agent would give. Return a JSON object: { "ideal_responses": ["<response 1>", "<response 2>", "<response 3>"] }`;
-      const bestAnswerSchema = { type: "OBJECT", properties: { "ideal_responses": { "type": "ARRAY", "items": { "type": "STRING" } } }, required: ["ideal_responses"] };
-
-      const [feedbackResult, bestAnswerResult] = await Promise.all([
-        getFromAI(feedbackPrompt, feedbackSchema),
-        getFromAI(bestAnswerPrompt, bestAnswerSchema)
-      ]);
-
-      handleAIResponse(responseText, feedbackResult, bestAnswerResult);
-    }
-
-    function handleAIResponse(userResp, feedback, bestAnswers) {
-      const score = feedback?.score ?? 50;
-      const feedbackText = feedback?.feedback ?? "Sorry, there was an error getting feedback.";
-      const idealResponses = bestAnswers?.ideal_responses ?? ["Could not generate ideal responses."];
-
-      sessionInteractions.push({
-        customerSays: currentScenario.dialogueTree[currentStep].customer,
-        userResponse: userResp,
-        aiFeedback: feedbackText,
-        aiScore: score,
-        idealResponses: idealResponses
-      });
-
-      let feedbackHTML = `
-        <div class="feedback-card border border-gray-200 rounded-lg p-4">
-          <h4 class="font-bold text-lg mb-2">AI Coach Feedback:</h4>
-          <p class="text-gray-700">${feedbackText}</p>
-          <p class="font-bold text-right mt-2">Score: ${score}/100</p>
-        </div>`;
-
-      if (score < 100) {
-        feedbackHTML += `
-          <div class="mt-4 p-4 bg-green-50 rounded-lg">
-            <strong class="text-green-700">Here are a few examples of highly empathetic responses:</strong>
-            <ul class="list-disc list-inside mt-2 text-sm text-green-800">
-              ${idealResponses.map(r => `<li>${r}</li>`).join('')}
-            </ul>
-          </div>`;
-      }
-
-      const feedbackContainer = document.getElementById('feedback-container');
-      feedbackContainer.innerHTML = feedbackHTML;
-      feedbackContainer.classList.remove('hidden');
-
-      const scoreChange = (score - 50) / 2;
-      empathyScore = Math.max(0, Math.min(100, empathyScore + scoreChange));
-      updateEmpathyMeter();
-
-      currentStep++;
-      const nextBtn = document.getElementById('next-btn');
-      if (currentScenario.title.includes("AI Quick-Fire")) {
-        nextBtn.textContent = "Next AI Problem";
-        nextBtn.onclick = startAIQuickFireRound;
-        nextBtn.classList.remove('hidden');
-      } else if (currentScenario.dialogueTree[currentStep]) {
-        nextBtn.textContent = "Next Step";
-        nextBtn.onclick = loadStep;
-        nextBtn.classList.remove('hidden');
-      } else {
-        setTimeout(showCompletionScreen, 1500);
-      }
-    }
-
-    function updateEmpathyMeter() {
-      document.getElementById('empathy-meter').style.width = `${empathyScore}%`;
-    }
-
-    async function showCompletionScreen() {
-      const finalFeedback = document.getElementById('final-feedback');
-      if (empathyScore > 75) finalFeedback.textContent = "Outstanding! You consistently demonstrated strong empathy and effective communication.";
-      else if (empathyScore > 40) finalFeedback.textContent = "Good work. You navigated the conversation well. Continue to focus on consistently validating feelings.";
-      else finalFeedback.textContent = "That was a challenging scenario. Remember to always start by acknowledging the customer's emotions. Give it another try!";
-      showView('completion');
-      await saveCompletedSession();
-    }
-
-    async function saveCompletedSession() {
-      if (!db) return;
-      if (!userId || sessionInteractions.length === 0) return;
-      try {
-        const sessionsRef = collection(db, `/artifacts/${appId}/users/${userId}/sessions`);
-        await addDoc(sessionsRef, {
-          userId: userId,
-          scenarioId: currentScenario.id,
-          scenarioTitle: currentScenario.title,
-          finalEmpathyScore: Math.round(empathyScore),
-          interactions: sessionInteractions,
-          completedAt: serverTimestamp()
-        });
-      } catch (error) {
-        console.error("Error saving session:", error);
-      }
-    }
-
-    async function showHistoryList() {
-      showView('historyList');
-      const container = document.getElementById('history-list-container');
-      container.innerHTML = '<div class="loader mx-auto"></div>';
-      if (!userId) { container.innerHTML = '<p>Please log in to see your history.</p>'; return; }
-      if (!db) { container.innerHTML = '<p class="text-red-500">Database not initialized.</p>'; return; }
-      try {
-        const sessionsRef = collection(db, `/artifacts/${appId}/users/${userId}/sessions`);
-        const q = query(sessionsRef);
-        const querySnapshot = await getDocs(q);
-        container.innerHTML = '';
-        if (querySnapshot.empty) { container.innerHTML = '<p class="text-center text-gray-500">You haven\'t completed any scenarios yet.</p>'; return; }
-        let sessions = [];
-        querySnapshot.forEach(docSnap => sessions.push({ id: docSnap.id, ...docSnap.data() }));
-        sessions.sort((a, b) => (b.completedAt?.toDate() || 0) - (a.completedAt?.toDate() || 0));
-        sessions.forEach(session => {
-          const item = document.createElement('div');
-          item.className = 'history-item bg-white p-4 rounded-lg shadow-sm cursor-pointer hover:shadow-md';
-          item.innerHTML = `
-            <div class="flex justify-between items-center">
-              <div>
-                <h4 class="font-bold">${session.scenarioTitle}</h4>
-                <p class="text-sm text-gray-500">Completed: ${session.completedAt ? session.completedAt.toDate().toLocaleDateString() : 'N/A'}</p>
-              </div>
-              <div class="text-lg font-bold text-blue-600">Score: ${session.finalEmpathyScore}</div>
-            </div>`;
-          item.addEventListener('click', () => showHistoryDetail(session));
-          container.appendChild(item);
-        });
-      } catch (error) {
-        console.error("Error fetching history:", error);
-        container.innerHTML = '<p class="text-red-500">Could not load history.</p>';
-      }
-    }
-
-    function showHistoryDetail(sessionData, fromAdmin = false) {
-      showView('historyDetail');
-      document.getElementById('history-detail-title').textContent = sessionData.scenarioTitle;
-      document.getElementById('history-detail-score').textContent = sessionData.finalEmpathyScore;
-      document.getElementById('history-summary-container').classList.add('hidden');
-      document.getElementById('history-summary-container').innerHTML = '';
-      document.getElementById('back-to-history-list-btn').onclick = fromAdmin ? showAdminSessionList : showHistoryList;
-
-      const container = document.getElementById('history-detail-interactions');
-      container.innerHTML = '';
-      sessionData.interactions.forEach((interaction, index) => {
-        const stepDiv = document.createElement('div');
-        stepDiv.className = 'border-t pt-4';
-        let adminControls = fromAdmin ? `<button data-interaction-index="${index}" class="edit-feedback-btn text-sm text-blue-500">Edit</button>` : '';
-        stepDiv.innerHTML = `
-          <p class="mb-2"><strong class="text-gray-500">Customer said:</strong> "${interaction.customerSays}"</p>
-          <p class="mb-2 p-2 bg-blue-50 rounded"><strong class="text-blue-700">Your response:</strong> "${interaction.userResponse}"</p>
-          <div class="mb-2 p-2 bg-gray-50 rounded">
-            <div class="flex justify-between items-start">
-              <p id="feedback-text-${index}"><strong class="text-gray-700">AI Feedback (Score: ${interaction.aiScore}):</strong> ${interaction.aiFeedback}</p>
-              ${adminControls}
+        <!-- Auth View -->
+        <div id="auth-view" class="bg-white p-8 rounded-2xl shadow-lg max-w-md mx-auto">
+            <div id="login-form">
+                <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+                <input type="email" id="login-email" placeholder="Email (admin@tempo.fit)" class="w-full p-3 mb-4 border rounded">
+                <input type="password" id="login-password" placeholder="Password (admin123)" class="w-full p-3 mb-4 border rounded">
+                <button id="login-btn" class="w-full bg-blue-500 text-white p-3 rounded">Login</button>
+                <p class="text-center mt-4">Don't have an account? <a href="#" id="show-register" class="text-blue-500">Register</a></p>
             </div>
-          </div>
-          <div class="p-2 bg-green-50 rounded">
-            <strong class="text-green-700">Ideal Responses:</strong>
-            <ul class="list-disc list-inside mt-1 text-sm text-green-800">
-              ${interaction.idealResponses.map(r => `<li>${r}</li>`).join('')}
-            </ul>
-          </div>`;
-        container.appendChild(stepDiv);
-      });
-      document.getElementById('get-summary-btn').onclick = () => getHistorySummaryFromAI(sessionData);
-    }
-
-    async function getToneAnalysisFromAI() {
-      const userResponse = document.getElementById('user-response');
-      const toneAnalysisContainer = document.getElementById('tone-analysis-container');
-      const responseText = userResponse.value.trim();
-      if (!responseText) return;
-      const prompt = `As a customer service coach, analyze the tone of this agent's response. Customer says: "${currentScenario.dialogueTree[currentStep].customer}". Agent's draft response: "${responseText}". Provide a one-sentence tone analysis and a one-sentence suggestion for improvement if needed. Return a JSON object: { "analysis": "<string>", "suggestion": "<string>" }`;
-      const schema = { type: "OBJECT", properties: { "analysis": { "type": "STRING" }, "suggestion": { "type": "STRING" } }, required: ["analysis", "suggestion"] };
-      const result = await getFromAI(prompt, schema);
-      toneAnalysisContainer.innerHTML = result
-        ? `<div class="p-2 bg-indigo-50 border border-indigo-200 rounded-md text-sm"><p><strong>Tone Analysis:</strong> ${result.analysis}</p><p><strong>Suggestion:</strong> ${result.suggestion}</p></div>`
-        : `<p class="text-sm text-red-500">Could not analyze tone.</p>`;
-      toneAnalysisContainer.classList.remove('hidden');
-    }
-
-    async function getHistorySummaryFromAI(sessionData) {
-      const summaryContainer = document.getElementById('history-summary-container');
-      summaryContainer.innerHTML = '<div class="loader mx-auto"></div>';
-      summaryContainer.classList.remove('hidden');
-      const interactionsText = sessionData.interactions.map(i =>
-        `Customer: "${i.customerSays}"\nYour Response: "${i.userResponse}" (Score: ${i.aiScore})\n`
-      ).join('\n');
-      const prompt = `As a customer service coach, review this entire conversation from a Tempo.fit support simulation. Scenario: ${sessionData.scenarioTitle}. Conversation History: ${interactionsText}. Provide a concise summary of the agent's performance and one actionable tip for improvement. Return a JSON object: { "summary": "<string>", "tip": "<string>" }`;
-      const schema = { type: "OBJECT", properties: { "summary": { "type": "STRING" }, "tip": { "type": "STRING" } }, required: ["summary", "tip"] };
-      const result = await getFromAI(prompt, schema);
-      summaryContainer.innerHTML = result
-        ? `<p><strong>Summary:</strong> ${result.summary}</p><p><strong>Actionable Tip:</strong> ${result.tip}</p>`
-        : `<p class="text-red-500">Could not generate a summary.</p>`;
-    }
-
-    async function startAIQuickFireRound() {
-      showView('simulator');
-      document.getElementById('scenario-title').textContent = "AI is thinking of a problem...";
-      document.getElementById('customer-persona').textContent = "";
-      document.getElementById('customer-dialogue').innerHTML = '<div class="loader mx-auto"></div>';
-      document.getElementById('response-area').classList.add('hidden');
-
-      const prompt = `You are a Tempo.fit customer with a problem. In one sentence, state your problem clearly and with some emotion (e.g., frustration, confusion, excitement). Also, provide a brief one-sentence persona for yourself. Return a JSON object with keys "persona" and "customer_problem".`;
-      const schema = { type: "OBJECT", properties: { "persona": { "type": "STRING" }, "customer_problem": { "type": "STRING" } }, required: ["persona", "customer_problem"] };
-      const result = await getFromAI(prompt, schema);
-
-      if (result) {
-        const quickFireScenario = {
-          id: 'ai-quick-fire-' + Date.now(),
-          title: "⚡ AI Quick-Fire Round",
-          persona: result.persona,
-          dialogueTree: [{ customer: result.customer_problem }]
-        };
-        startScenario(quickFireScenario);
-      } else {
-        document.getElementById('scenario-title').textContent = "Error";
-        document.getElementById('customer-dialogue').textContent = "Could not generate an AI problem. Please try again.";
-      }
-    }
-
-    async function showAssignedScenarios() {
-      showView('assignedScenarios');
-      const container = document.getElementById('assigned-scenarios-container');
-      container.innerHTML = '<div class="loader mx-auto"></div>';
-      if (!userId) { container.innerHTML = '<p>Could not identify user.</p>'; return; }
-      if (!db) { container.innerHTML = '<p class="text-red-500">Database not initialized.</p>'; return; }
-      const scenariosRef = collection(db, `/artifacts/${appId}/users/${userId}/assignedScenarios`);
-      const querySnapshot = await getDocs(scenariosRef);
-      container.innerHTML = '';
-      if (querySnapshot.empty) {
-        container.innerHTML = '<p class="text-center text-gray-500">You have no assigned scenarios.</p>';
-        return;
-      }
-      querySnapshot.forEach(docSnap => {
-        const scenario = { id: docSnap.id, ...docSnap.data() };
-        const card = document.createElement('div');
-        card.className = 'card bg-white p-6 rounded-lg cursor-pointer';
-        card.innerHTML = `<h3 class="text-xl font-bold mb-2 text-gray-800">${scenario.title}</h3><p class="text-gray-600">${scenario.description}</p>`;
-        card.addEventListener('click', () => startScenario(scenario));
-        container.appendChild(card);
-      });
-    }
-
-    async function showAdminUserList() {
-      showView('adminUserList');
-      const container = document.getElementById('admin-user-list-container');
-      container.innerHTML = '<div class="loader mx-auto"></div>';
-      if (!db) { container.innerHTML = '<p class="text-red-500">Database not initialized.</p>'; return; }
-
-      // NOTE: This expects a Firestore collection of public users.
-      const usersRef = collection(db, `/artifacts/${appId}/public/data/users`);
-      const querySnapshot = await getDocs(usersRef);
-      container.innerHTML = '';
-      querySnapshot.forEach(docSnap => {
-        const user = docSnap.data();
-        const item = document.createElement('div');
-        item.className = 'bg-white p-3 rounded-lg shadow-sm flex justify-between items-center';
-        item.innerHTML = `<p>${user.email || user.uid}</p><button data-uid="${user.uid}" class="assign-scenario-btn bg-blue-500 text-white px-2 py-1 rounded text-sm">Assign Scenario</button>`;
-        container.appendChild(item);
-      });
-      container.querySelectorAll('.assign-scenario-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => openAssignScenarioModal(e.target.dataset.uid));
-      });
-    }
-
-    async function openAssignScenarioModal(targetUserId) {
-      const modal = document.getElementById('assign-scenario-modal');
-      modal.classList.remove('hidden');
-      modal.innerHTML = '<div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white"><div class="loader mx-auto"></div></div>';
-
-      const scenarios = await getAllScenarios(true);
-      let scenarioListHTML = scenarios.map(sc => `
-        <div class="flex justify-between items-center p-2 border-b">
-          <p>${sc.title}</p>
-          <button data-sc-id='${JSON.stringify(sc)}' class="assign-btn bg-green-500 text-white px-2 py-1 rounded text-sm">Assign</button>
+            <div id="register-form" class="hidden">
+                <h2 class="text-2xl font-bold mb-4 text-center">Register</h2>
+                <input type="email" id="register-email" placeholder="Email" class="w-full p-3 mb-4 border rounded">
+                <input type="password" id="register-password" placeholder="Password" class="w-full p-3 mb-4 border rounded">
+                <button id="register-btn" class="w-full bg-green-500 text-white p-3 rounded">Register</button>
+                <p class="text-center mt-4">Already have an account? <a href="#" id="show-login" class="text-blue-500">Login</a></p>
+            </div>
+             <p id="auth-error" class="text-red-500 text-center mt-4"></p>
         </div>
-      `).join('');
 
-      modal.innerHTML = `
-        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
-          <h3 class="text-lg font-medium">Assign a Scenario to User ${targetUserId.substring(0,8)}...</h3>
-          <div class="mt-4 max-h-64 overflow-y-auto">${scenarioListHTML}</div>
-          <button onclick="document.getElementById('assign-scenario-modal').classList.add('hidden')" class="mt-4 bg-gray-200 p-2 rounded w-full">Close</button>
-        </div>`;
+        <!-- Main Menu View -->
+        <div id="main-menu" class="hidden text-center">
+            <div id="user-dashboard" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <button data-action="assigned" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">📝 My Assigned Scenarios</h3>
+                    <p class="text-gray-600">Practice scenarios assigned to you by an admin.</p>
+                </button>
+                <button data-action="practice" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">🚀 Practice Random Scenarios</h3>
+                    <p class="text-gray-600">Jump into a random multi-step simulation.</p>
+                </button>
+                <button data-action="quick-fire" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">⚡ AI Quick-Fire Round</h3>
+                    <p class="text-gray-600">Face unique, AI-generated single-step problems.</p>
+                </button>
+                <button data-action="create" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">✍️ Create a Scenario</h3>
+                    <p class="text-gray-600">Design a new custom scenario for your own practice.</p>
+                </button>
+                 <button data-action="history" class="card bg-white p-6 rounded-lg cursor-pointer text-left col-span-1 md:col-span-2">
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">📈 View My History</h3>
+                    <p class="text-gray-600">Review your past performance, feedback, and ideal responses.</p>
+                </button>
+            </div>
+             <button id="admin-dashboard-btn" class="hidden mt-6 card bg-indigo-600 text-white p-4 rounded-lg w-full md:w-1/2 mx-auto">
+                <h3 class="text-xl font-bold">👑 Admin Dashboard</h3>
+            </button>
+        </div>
+        
+        <!-- Assigned Scenarios View -->
+        <div id="assigned-scenarios-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
+            <button class="back-to-menu-btn mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Menu</button>
+            <h2 class="text-3xl font-bold mb-4 text-center">My Assigned Scenarios</h2>
+            <div id="assigned-scenarios-container" class="space-y-4"></div>
+        </div>
 
-      modal.querySelectorAll('.assign-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          const scenarioToAssign = JSON.parse(e.target.dataset.scId);
-          if (!db) return;
-          const assignmentRef = doc(db, `/artifacts/${appId}/users/${targetUserId}/assignedScenarios`, scenarioToAssign.id);
-          await setDoc(assignmentRef, scenarioToAssign);
-          e.target.textContent = 'Assigned!';
-          e.target.disabled = true;
+        <!-- Create Scenario View -->
+        <div id="create-scenario-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
+            <button class="back-to-menu-btn mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Menu</button>
+            <h2 class="text-2xl font-bold mb-4">✨ Create a Custom Scenario</h2>
+            <p class="text-gray-600 mb-4">Describe a customer service situation. The AI will generate a title, description, persona, and a 3-step dialogue tree for it.</p>
+            <label for="scenario-topic" class="block text-sm font-medium text-gray-700">Scenario Topic</label>
+            <input type="text" id="scenario-topic" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" placeholder="e.g., A customer's weights are not being recognized by the AI">
+            <div id="modal-loading" class="hidden flex-col items-center justify-center mt-4">
+                <div class="loader"></div>
+                <p class="text-gray-600 mt-2">Generating your custom scenario...</p>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button id="generate-scenario-btn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">Generate & Save</button>
+            </div>
+        </div>
+
+        <!-- History List View -->
+        <div id="history-list-view" class="hidden">
+             <button class="back-to-menu-btn mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Menu</button>
+            <h2 class="text-3xl font-bold mb-4 text-center">My Session History</h2>
+            <div id="history-list-container" class="space-y-4"></div>
+        </div>
+
+        <!-- History Detail View -->
+        <div id="history-detail-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
+            <button id="back-to-history-list-btn" class="mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to History</button>
+            <h2 id="history-detail-title" class="text-2xl font-bold mb-2"></h2>
+            <p class="text-lg font-semibold mb-4">Final Empathy Score: <span id="history-detail-score" class="text-blue-600"></span></p>
+            <button id="get-summary-btn" class="w-full mb-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">✨ Get Summary & Tip</button>
+            <div id="history-summary-container" class="hidden mb-4 p-4 bg-indigo-50 rounded-lg"></div>
+            <div id="history-detail-interactions" class="space-y-6"></div>
+        </div>
+
+        <!-- Simulator View -->
+        <div id="simulator" class="hidden bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+            <div id="scenario-title" class="text-2xl font-bold mb-2 text-gray-900"></div>
+            <div id="customer-persona" class="text-sm text-gray-500 mb-4 italic"></div>
+            <div class="h-4 bg-gray-200 rounded-full mb-4 overflow-hidden">
+                <div id="empathy-meter" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 50%;"></div>
+            </div>
+            <p class="text-right text-sm text-gray-500 mb-4">Empathy Meter</p>
+            <div id="dialogue-container" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[100px]">
+                <p class="font-semibold text-gray-600 mb-2">Customer says:</p>
+                <p id="customer-dialogue" class="text-gray-800"></p>
+            </div>
+            <div id="response-area">
+                <div class="flex justify-between items-center mb-2">
+                    <label for="user-response" class="block font-semibold text-gray-700">Your Response:</label>
+                    <div>
+                        <button id="analyze-tone-btn" class="text-sm text-indigo-600 hover:text-indigo-800 font-semibold mr-4">✨ Analyze Tone</button>
+                        <button id="get-suggestions-btn" class="text-sm text-blue-600 hover:text-blue-800 font-semibold">✨ Get Suggestions</button>
+                    </div>
+                </div>
+                <div id="tone-analysis-container" class="mb-4 hidden"></div>
+                <div id="suggestions-container" class="mb-4 hidden"></div>
+                <textarea id="user-response" class="w-full p-3 border border-gray-300 rounded-lg" rows="4" placeholder="Type your empathetic response here..."></textarea>
+                <button id="submit-response-btn" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">Submit for Feedback</button>
+            </div>
+            <div id="loading-indicator" class="hidden flex-col items-center justify-center mt-4">
+                <div class="loader"></div><p class="text-gray-600 mt-2">AI coach is thinking...</p>
+            </div>
+            <div id="feedback-container" class="mt-6 hidden"></div>
+            <div class="mt-6 flex justify-between items-center">
+                 <button class="back-to-menu-btn bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">Back to Menu</button>
+                 <button id="next-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg hidden">Next Step</button>
+            </div>
+        </div>
+        
+        <!-- Completion Screen -->
+        <div id="completion-screen" class="hidden text-center bg-white p-8 rounded-2xl shadow-lg">
+            <h2 class="text-3xl font-bold text-green-600 mb-4">Scenario Complete!</h2>
+            <p id="final-feedback" class="text-lg text-gray-700 mb-6"></p>
+            <div class="flex justify-center space-x-4">
+                <button id="restart-scenario-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">Try Again</button>
+                <button id="choose-another-scenario-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg">Another Random Scenario</button>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard View -->
+        <div id="admin-dashboard-view" class="hidden">
+             <button class="back-to-menu-btn mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Menu</button>
+            <h2 class="text-3xl font-bold mb-4 text-center">👑 Admin Dashboard</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button data-action="admin-users" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">Manage Users</h3>
+                    <p class="text-gray-600">View all users and assign scenarios to them.</p>
+                </button>
+                <button data-action="admin-sessions" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">Audit Sessions</h3>
+                    <p class="text-gray-600">Review and manually edit feedback for all completed user sessions.</p>
+                </button>
+            </div>
+        </div>
+
+        <div id="admin-user-list-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
+             <button id="back-to-admin-dash-btn" class="mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Admin</button>
+             <h2 class="text-3xl font-bold mb-4 text-center">Manage Users</h2>
+             <div id="admin-user-list-container" class="space-y-2"></div>
+        </div>
+        
+        <div id="admin-session-list-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
+            <button id="back-to-admin-dash-btn2" class="mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Admin</button>
+            <h2 class="text-3xl font-bold mb-4 text-center">Audit User Sessions</h2>
+            <div id="admin-session-list-container" class="space-y-4"></div>
+        </div>
+
+        <div id="assign-scenario-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"></div>
+
+    </div>
+
+    <script type="module">
+        const { createClient } = supabase;
+        const supabaseUrl = 'https://camonkvcskqeemsfsjea.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhbW9ua3Zjc2txZWVtc2ZzamVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNTg1MTAsImV4cCI6MjA3MTczNDUxMH0.McthjvqNtUHfGhm5zAwicGwkt1CcsbVWjh_mohAPPDE';
+        const db = createClient(supabaseUrl, supabaseKey);
+
+        let userId;
+        let isAdmin = false;
+
+        const defaultScenarios = [
+            { id: 'default-0', title: "Tempo Move Connection Issue", isDefault: true, description: "A customer is frustrated because their Tempo Move won't connect to their TV.", persona: "Customer: Mark, a new user who was excited to start his first class. He's now annoyed and feels like the product is too complicated.", dialogue_tree: [{ customer: "I've been trying for 30 minutes and my Tempo Move just won't show up on my TV! I'm about to miss my scheduled class. This is so frustrating." }, { customer: "I've tried restarting everything already. My iPhone is plugged into the Core, and the HDMI is in the TV. What else could it be?" }, { customer: "Okay, I checked and the TV is on the right HDMI input. It's working now! Thank you for walking me through that." }] },
+            { id: 'default-1', title: "30-Day Trial & Return Question", isDefault: true, description: "A customer is nearing the end of their 30-day trial and is considering a return.", persona: "Customer: Jessica, who likes the workouts but isn't sure if it's worth the price. She's anxious about getting stuck in a contract.", dialogue_tree: [{ customer: "Hi, my 30-day trial is ending soon. I like the Tempo, but I'm not sure I can commit. What's the process if I decide to return it? I'm worried about hidden fees." }, { customer: "So as long as I have the original box, there's no restocking fee? That's good to know. Can I pause my membership instead of canceling?" }, { customer: "A membership pause is a great option. I think I'll do that and decide in a month. Thanks for explaining everything so clearly." }] },
+            { id: 'default-2', title: "AI Form Feedback Complaint", isDefault: true, description: "A long-time user is upset because they feel the AI form feedback is inaccurate.", persona: "Customer: Alex, an experienced lifter who has been using Tempo for 6 months. They are starting to question the value of the AI technology.", dialogue_tree: [{ customer: "I have to say, I'm getting really disappointed with the form feedback. It keeps telling me my squat depth is wrong, but I know my form is solid. It's making me question the whole system." }, { customer: "I've already checked the lighting and made sure the area is clear. It feels like the AI just isn't as smart as it's supposed to be. Is there a way to recalibrate it?" }, { customer: "I didn't know you could submit a video for review. That's actually really helpful. I'll do that after my next workout. I appreciate you offering a real solution." }] }
+        ];
+        
+        let currentScenario = null;
+        let lastPlayedScenarioId = null;
+        let currentStep = 0;
+        let empathyScore = 50;
+        let sessionInteractions = [];
+
+        const views = {
+            auth: document.getElementById('auth-view'),
+            mainMenu: document.getElementById('main-menu'),
+            createScenario: document.getElementById('create-scenario-view'),
+            historyList: document.getElementById('history-list-view'),
+            historyDetail: document.getElementById('history-detail-view'),
+            simulator: document.getElementById('simulator'),
+            completion: document.getElementById('completion-screen'),
+            adminDashboard: document.getElementById('admin-dashboard-view'),
+            adminUserList: document.getElementById('admin-user-list-view'),
+            adminSessionList: document.getElementById('admin-session-list-view'),
+            assignedScenarios: document.getElementById('assigned-scenarios-view'),
+        };
+
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        function showView(viewName) {
+            Object.values(views).forEach(view => view && view.classList.add('hidden'));
+            if (views[viewName]) views[viewName].classList.remove('hidden');
+        }
+
+        async function getFromAI(prompt, schema = null) {
+            loadingIndicator.classList.remove('hidden');
+            document.getElementById('modal-loading')?.classList.remove('hidden');
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+            if (schema) payload.generationConfig = { responseMimeType: "application/json", responseSchema: schema };
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            try {
+                let response; let delay = 1000;
+                for (let i = 0; i < 5; i++) {
+                    response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (response.ok) break;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+                if (!response.ok) throw new Error(`API request failed`);
+                const result = await response.json();
+                const rawJson = result.candidates[0].content.parts[0].text;
+                return JSON.parse(rawJson.replace(/```json/g, '').replace(/```/g, '').trim());
+            } catch (error) {
+                console.error("Error with AI call:", error);
+                return null;
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                document.getElementById('modal-loading')?.classList.add('hidden');
+            }
+        }
+
+        async function getAllScenarios() {
+            let scenarios = [...defaultScenarios];
+            const { data, error } = await db.from('scenarios').select();
+            if (error) {
+                console.error("Could not load user-created scenarios:", error.message);
+            } else {
+                scenarios = scenarios.concat(data);
+            }
+            return scenarios;
+        }
+
+        async function startRandomScenario() {
+            showView('simulator');
+            document.getElementById('scenario-title').textContent = "Finding a scenario...";
+            document.getElementById('customer-persona').textContent = "";
+            document.getElementById('customer-dialogue').innerHTML = '<div class="loader mx-auto"></div>';
+            document.getElementById('response-area').classList.add('hidden');
+            
+            const scenarios = await getAllScenarios();
+            let availableScenarios = scenarios.filter(s => s.id !== lastPlayedScenarioId);
+            if (availableScenarios.length === 0) availableScenarios = scenarios;
+            if (availableScenarios.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableScenarios.length);
+                const chosenScenario = availableScenarios[randomIndex];
+                lastPlayedScenarioId = chosenScenario.id;
+                startScenario(chosenScenario);
+            } else {
+                document.getElementById('scenario-title').textContent = "Error";
+                document.getElementById('customer-dialogue').textContent = "No scenarios found. Please create one first.";
+            }
+        }
+
+        function startScenario(scenarioData) {
+            currentScenario = scenarioData;
+            currentStep = 0;
+            empathyScore = 50;
+            sessionInteractions = [];
+            showView('simulator');
+            loadStep();
+        }
+
+        function loadStep() {
+            const feedbackContainer = document.getElementById('feedback-container');
+            const suggestionsContainer = document.getElementById('suggestions-container');
+            const toneAnalysisContainer = document.getElementById('tone-analysis-container');
+            const nextBtn = document.getElementById('next-btn');
+            const responseArea = document.getElementById('response-area');
+            const userResponse = document.getElementById('user-response');
+
+            feedbackContainer.classList.add('hidden');
+            suggestionsContainer.classList.add('hidden');
+            toneAnalysisContainer.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            responseArea.classList.remove('hidden');
+            userResponse.value = '';
+            
+            const stepData = currentScenario.dialogue_tree[currentStep];
+            if (!stepData) {
+                showCompletionScreen();
+                return;
+            }
+
+            document.getElementById('scenario-title').textContent = currentScenario.title;
+            document.getElementById('customer-persona').textContent = currentScenario.persona;
+            document.getElementById('customer-dialogue').textContent = stepData.customer;
+            updateEmpathyMeter();
+        }
+
+        async function handleSubmitResponse() {
+            const userResponse = document.getElementById('user-response');
+            const responseText = userResponse.value.trim();
+            if (!responseText) return;
+            document.getElementById('response-area').classList.add('hidden');
+            const feedbackPrompt = `You are an expert customer service training coach for Tempo.fit. Evaluate a user's response. **Scenario:** ${currentScenario.title} | **Customer's Statement:** "${currentScenario.dialogue_tree[currentStep].customer}" | **User's Response:** "${responseText}". Provide your evaluation as a JSON object: { "score": <integer 0-100>, "feedback": "<concise, constructive feedback>" }`;
+            const feedbackSchema = { type: "OBJECT", properties: { "score": { "type": "INTEGER" }, "feedback": { "type": "STRING" } }, required: ["score", "feedback"] };
+            const bestAnswerPrompt = `You are a customer service expert for Tempo.fit. **Scenario:** ${currentScenario.title} | **Customer's Statement:** "${currentScenario.dialogue_tree[currentStep].customer}". Provide three distinct, ideal, and empathetic responses a top-tier agent would give. Return a JSON object: { "ideal_responses": ["<response 1>", "<response 2>", "<response 3>"] }`;
+            const bestAnswerSchema = { type: "OBJECT", properties: { "ideal_responses": { "type": "ARRAY", "items": { "type": "STRING" } } }, required: ["ideal_responses"] };
+            const [feedbackResult, bestAnswerResult] = await Promise.all([ getFromAI(feedbackPrompt, feedbackSchema), getFromAI(bestAnswerPrompt, bestAnswerSchema) ]);
+            handleAIResponse(responseText, feedbackResult, bestAnswerResult);
+        }
+
+        function handleAIResponse(userResp, feedback, bestAnswers) {
+            const score = feedback?.score ?? 50;
+            const feedbackText = feedback?.feedback ?? "Sorry, there was an error getting feedback.";
+            const idealResponses = bestAnswers?.ideal_responses ?? ["Could not generate ideal responses."];
+            sessionInteractions.push({ customerSays: currentScenario.dialogue_tree[currentStep].customer, userResponse: userResp, aiFeedback: feedbackText, aiScore: score, idealResponses: idealResponses });
+            let feedbackHTML = `<div class="feedback-card border border-gray-200 rounded-lg p-4"><h4 class="font-bold text-lg mb-2">AI Coach Feedback:</h4><p class="text-gray-700">${feedbackText}</p><p class="font-bold text-right mt-2">Score: ${score}/100</p></div>`;
+            if (score < 100) {
+                feedbackHTML += `<div class="mt-4 p-4 bg-green-50 rounded-lg"><strong class="text-green-700">Here are a few examples of highly empathetic responses:</strong><ul class="list-disc list-inside mt-2 text-sm text-green-800">${idealResponses.map(r => `<li>${r}</li>`).join('')}</ul></div>`;
+            }
+            const feedbackContainer = document.getElementById('feedback-container');
+            feedbackContainer.innerHTML = feedbackHTML;
+            feedbackContainer.classList.remove('hidden');
+            const scoreChange = (score - 50) / 2;
+            empathyScore = Math.max(0, Math.min(100, empathyScore + scoreChange));
+            updateEmpathyMeter();
+            currentStep++;
+            const nextBtn = document.getElementById('next-btn');
+            if (currentScenario.title.includes("AI Quick-Fire")) {
+                nextBtn.textContent = "Next AI Problem";
+                nextBtn.onclick = startAIQuickFireRound;
+                nextBtn.classList.remove('hidden');
+            } else if (currentScenario.dialogue_tree[currentStep]) {
+                nextBtn.textContent = "Next Step";
+                nextBtn.onclick = loadStep;
+                nextBtn.classList.remove('hidden');
+            } else {
+                setTimeout(showCompletionScreen, 1500);
+            }
+        }
+
+        function updateEmpathyMeter() {
+            document.getElementById('empathy-meter').style.width = `${empathyScore}%`;
+        }
+
+        async function showCompletionScreen() {
+            const finalFeedback = document.getElementById('final-feedback');
+            if (empathyScore > 75) finalFeedback.textContent = "Outstanding! You consistently demonstrated strong empathy and effective communication.";
+            else if (empathyScore > 40) finalFeedback.textContent = "Good work. You navigated the conversation well. Continue to focus on consistently validating feelings.";
+            else finalFeedback.textContent = "That was a challenging scenario. Remember to always start by acknowledging the customer's emotions. Give it another try!";
+            showView('completion');
+            await saveCompletedSession();
+        }
+
+        async function saveCompletedSession() {
+            if (!userId || sessionInteractions.length === 0) return;
+            const { error } = await db.from('sessions').insert({ 
+                user_id: userId, 
+                scenario_title: currentScenario.title, 
+                final_empathy_score: Math.round(empathyScore), 
+                interactions: sessionInteractions 
+            });
+            if (error) console.error("Error saving session:", error.message);
+        }
+        
+        async function showHistoryList() {
+            showView('historyList');
+            const container = document.getElementById('history-list-container');
+            container.innerHTML = '<div class="loader mx-auto"></div>';
+            if (!userId) { container.innerHTML = '<p>Please log in to see your history.</p>'; return; }
+            
+            const { data, error } = await db.from('sessions').select().eq('user_id', userId).order('completed_at', { ascending: false });
+
+            if (error) {
+                console.error("Error fetching history:", error.message);
+                container.innerHTML = '<p class="text-red-500">Could not load history.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            if (data.length === 0) { container.innerHTML = '<p class="text-center text-gray-500">You haven\'t completed any scenarios yet.</p>'; return; }
+            
+            data.forEach(session => {
+                const item = document.createElement('div');
+                item.className = 'history-item bg-white p-4 rounded-lg shadow-sm cursor-pointer hover:shadow-md';
+                item.innerHTML = `<div class="flex justify-between items-center"><div><h4 class="font-bold">${session.scenario_title}</h4><p class="text-sm text-gray-500">Completed: ${new Date(session.completed_at).toLocaleDateString()}</p></div><div class="text-lg font-bold text-blue-600">Score: ${session.final_empathy_score}</div></div>`;
+                item.addEventListener('click', () => showHistoryDetail(session));
+                container.appendChild(item);
+            });
+        }
+
+        function showHistoryDetail(sessionData, fromAdmin = false) {
+            showView('historyDetail');
+            document.getElementById('history-detail-title').textContent = sessionData.scenario_title;
+            document.getElementById('history-detail-score').textContent = sessionData.final_empathy_score;
+            document.getElementById('history-summary-container').classList.add('hidden');
+            document.getElementById('history-summary-container').innerHTML = '';
+            document.getElementById('back-to-history-list-btn').onclick = fromAdmin ? showAdminSessionList : showHistoryList;
+            
+            const container = document.getElementById('history-detail-interactions');
+            container.innerHTML = '';
+            sessionData.interactions.forEach((interaction, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'border-t pt-4';
+                let adminControls = fromAdmin ? `<button data-session-id="${sessionData.id}" data-interaction-index="${index}" class="edit-feedback-btn text-sm text-blue-500">Edit</button>` : '';
+                stepDiv.innerHTML = `
+                    <p class="mb-2"><strong class="text-gray-500">Customer said:</strong> "${interaction.customerSays}"</p>
+                    <p class="mb-2 p-2 bg-blue-50 rounded"><strong class="text-blue-700">Your response:</strong> "${interaction.userResponse}"</p>
+                    <div class="mb-2 p-2 bg-gray-50 rounded">
+                        <div class="flex justify-between items-start">
+                           <p id="feedback-text-${sessionData.id}-${index}"><strong class="text-gray-700">AI Feedback (Score: ${interaction.aiScore}):</strong> ${interaction.aiFeedback}</p>
+                           ${adminControls}
+                        </div>
+                    </div>
+                    <div class="p-2 bg-green-50 rounded"><strong class="text-green-700">Ideal Responses:</strong><ul class="list-disc list-inside mt-1 text-sm text-green-800">${interaction.idealResponses.map(r => `<li>${r}</li>`).join('')}</ul></div>`;
+                container.appendChild(stepDiv);
+            });
+            document.getElementById('get-summary-btn').onclick = () => getHistorySummaryFromAI(sessionData);
+
+             if(fromAdmin) {
+                container.querySelectorAll('.edit-feedback-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = e.target.dataset.interactionIndex;
+                        const sessionId = e.target.dataset.sessionId;
+                        const feedbackP = document.getElementById(`feedback-text-${sessionId}-${index}`);
+                        const currentFeedback = sessionData.interactions[index].aiFeedback;
+                        feedbackP.innerHTML = `<textarea class="w-full border rounded p-1">${currentFeedback}</textarea><button data-save-index="${index}" data-session-id="${sessionId}" class="save-feedback-btn text-sm bg-green-500 text-white p-1 rounded mt-1">Save</button>`;
+                        
+                        feedbackP.querySelector('.save-feedback-btn').addEventListener('click', async (saveEvent) => {
+                            const newFeedback = saveEvent.target.previousElementSibling.value;
+                            sessionData.interactions[index].aiFeedback = newFeedback;
+                            
+                            const { error } = await db.from('sessions').update({ interactions: sessionData.interactions }).eq('id', sessionId);
+
+                            if (error) {
+                                console.error("Failed to save feedback:", error.message);
+                                feedbackP.innerHTML = `<strong class="text-gray-700">AI Feedback (Score: ${sessionData.interactions[index].aiScore}):</strong> ${currentFeedback} <span class="text-red-500">(Save failed)</span>`;
+                            } else {
+                                feedbackP.innerHTML = `<strong class="text-gray-700">AI Feedback (Score: ${sessionData.interactions[index].aiScore}):</strong> ${newFeedback}`;
+                            }
+                        });
+                    });
+                });
+            }
+        }
+        
+        async function getToneAnalysisFromAI() {
+            const userResponse = document.getElementById('user-response');
+            const toneAnalysisContainer = document.getElementById('tone-analysis-container');
+            const responseText = userResponse.value.trim();
+            if (!responseText) return;
+            const prompt = `As a customer service coach, analyze the tone of this agent's response. Customer says: "${currentScenario.dialogue_tree[currentStep].customer}". Agent's draft response: "${responseText}". Provide a one-sentence tone analysis and a one-sentence suggestion for improvement if needed. Return a JSON object: { "analysis": "<string>", "suggestion": "<string>" }`;
+            const schema = { type: "OBJECT", properties: { "analysis": { "type": "STRING" }, "suggestion": { "type": "STRING" } }, required: ["analysis", "suggestion"] };
+            const result = await getFromAI(prompt, schema);
+            toneAnalysisContainer.innerHTML = result ? `<div class="p-2 bg-indigo-50 border border-indigo-200 rounded-md text-sm"><p><strong>Tone Analysis:</strong> ${result.analysis}</p><p><strong>Suggestion:</strong> ${result.suggestion}</p></div>` : `<p class="text-sm text-red-500">Could not analyze tone.</p>`;
+            toneAnalysisContainer.classList.remove('hidden');
+        }
+
+        async function getHistorySummaryFromAI(sessionData) {
+            const summaryContainer = document.getElementById('history-summary-container');
+            summaryContainer.innerHTML = '<div class="loader mx-auto"></div>';
+            summaryContainer.classList.remove('hidden');
+            const interactionsText = sessionData.interactions.map(i => `Customer: "${i.customerSays}"\nYour Response: "${i.userResponse}" (Score: ${i.aiScore})\n`).join('\n');
+            const prompt = `As a customer service coach, review this entire conversation from a Tempo.fit support simulation. Scenario: ${sessionData.scenario_title}. Conversation History: ${interactionsText}. Provide a concise summary of the agent's performance and one actionable tip for improvement. Return a JSON object: { "summary": "<string>", "tip": "<string>" }`;
+            const schema = { type: "OBJECT", properties: { "summary": { "type": "STRING" }, "tip": { "type": "STRING" } }, required: ["summary", "tip"] };
+            const result = await getFromAI(prompt, schema);
+            summaryContainer.innerHTML = result ? `<p><strong>Summary:</strong> ${result.summary}</p><p><strong>Actionable Tip:</strong> ${result.tip}</p>` : `<p class="text-red-500">Could not generate a summary.</p>`;
+        }
+
+        async function startAIQuickFireRound() {
+            showView('simulator');
+            document.getElementById('scenario-title').textContent = "AI is thinking of a problem...";
+            document.getElementById('customer-persona').textContent = "";
+            document.getElementById('customer-dialogue').innerHTML = '<div class="loader mx-auto"></div>';
+            document.getElementById('response-area').classList.add('hidden');
+
+            const prompt = `You are a Tempo.fit customer with a problem. In one sentence, state your problem clearly and with some emotion (e.g., frustration, confusion, excitement). Also, provide a brief one-sentence persona for yourself. Return a JSON object with keys "persona" and "customer_problem".`;
+            const schema = { type: "OBJECT", properties: { "persona": { "type": "STRING" }, "customer_problem": { "type": "STRING" } }, required: ["persona", "customer_problem"] };
+            const result = await getFromAI(prompt, schema);
+
+            if (result) {
+                const quickFireScenario = {
+                    id: 'ai-quick-fire-' + Date.now(),
+                    title: "⚡ AI Quick-Fire Round",
+                    persona: result.persona,
+                    dialogue_tree: [{ customer: result.customer_problem }]
+                };
+                startScenario(quickFireScenario);
+            } else {
+                document.getElementById('scenario-title').textContent = "Error";
+                document.getElementById('customer-dialogue').textContent = "Could not generate an AI problem. Please try again.";
+            }
+        }
+        
+        async function showAssignedScenarios() {
+            showView('assignedScenarios');
+            const container = document.getElementById('assigned-scenarios-container');
+            container.innerHTML = '<div class="loader mx-auto"></div>';
+            if (!userId) { container.innerHTML = '<p>Could not identify user.</p>'; return; }
+            
+            const { data, error } = await db.from('assigned_scenarios').select('scenario_data').eq('user_id', userId);
+            
+            if (error) { console.error(error); container.innerHTML = '<p>Could not load assigned scenarios.</p>'; return; }
+
+            container.innerHTML = '';
+            if (data.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">You have no assigned scenarios.</p>';
+                return;
+            }
+            data.forEach(item => {
+                const scenario = item.scenario_data;
+                const card = document.createElement('div');
+                card.className = 'card bg-white p-6 rounded-lg cursor-pointer';
+                card.innerHTML = `<h3 class="text-xl font-bold mb-2 text-gray-800">${scenario.title}</h3><p class="text-gray-600">${scenario.description}</p>`;
+                card.addEventListener('click', () => startScenario(scenario));
+                container.appendChild(card);
+            });
+        }
+
+        async function showAdminUserList() {
+            showView('adminUserList');
+            const container = document.getElementById('admin-user-list-container');
+            container.innerHTML = '<div class="loader mx-auto"></div>';
+            
+            const { data, error } = await db.from('users').select();
+
+            if (error) { console.error(error); container.innerHTML = '<p>Could not load users.</p>'; return; }
+
+            container.innerHTML = '';
+            data.forEach(user => {
+                if (user.email === 'admin@tempo.fit') return;
+                const item = document.createElement('div');
+                item.className = 'bg-white p-3 rounded-lg shadow-sm flex justify-between items-center';
+                item.innerHTML = `<p>${user.email || user.id}</p><button data-uid="${user.id}" class="assign-scenario-btn bg-blue-500 text-white px-2 py-1 rounded text-sm">Assign Scenario</button>`;
+                container.appendChild(item);
+            });
+            container.querySelectorAll('.assign-scenario-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => openAssignScenarioModal(e.target.dataset.uid));
+            });
+        }
+
+        async function openAssignScenarioModal(targetUserId) {
+            const modal = document.getElementById('assign-scenario-modal');
+            modal.classList.remove('hidden');
+            
+            modal.innerHTML = `
+                <div class="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+                    <h3 class="text-lg font-medium">Create and Assign New Scenario</h3>
+                    <p class="text-sm text-gray-500 mb-4">For User: ${targetUserId.substring(0,8)}...</p>
+                    <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                        <div><label class="block text-sm">Title</label><input id="assign-title" type="text" class="w-full p-2 border rounded"></div>
+                        <div><label class="block text-sm">Description</label><input id="assign-description" type="text" class="w-full p-2 border rounded"></div>
+                        <div><label class="block text-sm">Persona</label><textarea id="assign-persona" class="w-full p-2 border rounded" rows="2"></textarea></div>
+                        <div><label class="block text-sm">Dialogue Step 1</label><textarea class="w-full p-2 border rounded assign-dialogue-step" rows="2"></textarea></div>
+                        <div><label class="block text-sm">Dialogue Step 2</label><textarea class="w-full p-2 border rounded assign-dialogue-step" rows="2"></textarea></div>
+                        <div><label class="block text-sm">Dialogue Step 3</label><textarea class="w-full p-2 border rounded assign-dialogue-step" rows="2"></textarea></div>
+                    </div>
+                    <div class="mt-4 flex justify-end space-x-2">
+                        <button onclick="document.getElementById('assign-scenario-modal').classList.add('hidden')" class="bg-gray-200 p-2 rounded">Cancel</button>
+                        <button id="save-and-assign-btn" class="bg-blue-500 text-white p-2 rounded">Save and Assign</button>
+                    </div>
+                </div>`;
+
+            document.getElementById('save-and-assign-btn').addEventListener('click', async (e) => {
+                const button = e.target;
+                button.textContent = 'Saving...';
+                button.disabled = true;
+
+                const newScenarioData = {
+                    title: document.getElementById('assign-title').value,
+                    description: document.getElementById('assign-description').value,
+                    persona: document.getElementById('assign-persona').value,
+                    dialogue_tree: Array.from(document.querySelectorAll('.assign-dialogue-step')).map(textarea => ({ customer: textarea.value })),
+                    author_id: userId
+                };
+
+                const { data: newScenario, error: insertError } = await db.from('scenarios').insert(newScenarioData).select().single();
+
+                if (insertError) {
+                    console.error("Error saving new scenario:", insertError.message);
+                    button.textContent = 'Save Failed!';
+                    setTimeout(() => { button.textContent = 'Save and Assign'; button.disabled = false; }, 2000);
+                    return;
+                }
+
+                const { error: assignError } = await db.from('assigned_scenarios').insert({
+                    user_id: targetUserId,
+                    scenario_id: newScenario.id,
+                    scenario_data: newScenario
+                });
+
+                if (assignError) {
+                    console.error("Error assigning scenario:", assignError.message);
+                    button.textContent = 'Assign Failed!';
+                    setTimeout(() => { button.textContent = 'Save and Assign'; button.disabled = false; }, 2000);
+                } else {
+                    button.textContent = 'Assigned!';
+                    setTimeout(() => {
+                        document.getElementById('assign-scenario-modal').classList.add('hidden');
+                    }, 1500);
+                }
+            });
+        }
+        
+        async function showAdminSessionList() {
+            showView('adminSessionList');
+            const container = document.getElementById('admin-session-list-container');
+            container.innerHTML = '<div class="loader mx-auto"></div>';
+            
+            const { data, error } = await db.from('sessions').select(`
+                *,
+                users ( email )
+            `).order('completed_at', { ascending: false });
+            
+            if (error) { 
+                console.error(error); 
+                container.innerHTML = `<p class="text-red-500">Could not load sessions. Make sure RLS is disabled or policies are correct for the 'sessions' and 'users' tables.</p>`; 
+                return; 
+            }
+
+            container.innerHTML = '';
+            if (data.length === 0) { 
+                container.innerHTML = '<p class="text-center">No user sessions found.</p>'; 
+                return; 
+            }
+            
+            data.forEach(session => {
+                const item = document.createElement('div');
+                item.className = 'history-item bg-white p-4 rounded-lg shadow-sm cursor-pointer hover:shadow-md';
+                item.innerHTML = `<div class="flex justify-between items-center"><div><h4 class="font-bold">${session.scenario_title}</h4><p class="text-sm text-gray-500">User: ${session.users ? session.users.email : session.user_id.substring(0,8)+'...'} | Completed: ${new Date(session.completed_at).toLocaleDateString()}</p></div><div class="text-lg font-bold text-blue-600">Score: ${session.final_empathy_score}</div></div>`;
+                item.addEventListener('click', () => showHistoryDetail(session, true));
+                container.appendChild(item);
+            });
+        }
+
+
+        function setupEventListeners() {
+            document.querySelectorAll('[data-action]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const action = e.currentTarget.dataset.action;
+                    if (action === 'practice') startRandomScenario();
+                    else if (action === 'create') showView('createScenario');
+                    else if (action === 'history') showHistoryList();
+                    else if (action === 'assigned') showAssignedScenarios();
+                    else if (action === 'quick-fire') startAIQuickFireRound();
+                    else if (action === 'admin-users') showAdminUserList();
+                    else if (action === 'admin-sessions') showAdminSessionList();
+                });
+            });
+            
+            document.querySelectorAll('.back-to-menu-btn').forEach(btn => {
+                btn.addEventListener('click', () => showView('mainMenu'));
+            });
+
+            document.getElementById('admin-dashboard-btn').addEventListener('click', () => showView('adminDashboard'));
+            document.getElementById('back-to-admin-dash-btn')?.addEventListener('click', () => showView('adminDashboard'));
+            document.getElementById('back-to-admin-dash-btn2')?.addEventListener('click', () => showView('adminDashboard'));
+            document.getElementById('back-to-history-list-btn').addEventListener('click', showHistoryList);
+            document.getElementById('restart-scenario-btn').addEventListener('click', () => startScenario(currentScenario));
+            document.getElementById('choose-another-scenario-btn').addEventListener('click', startRandomScenario);
+            document.getElementById('submit-response-btn').addEventListener('click', handleSubmitResponse);
+            document.getElementById('next-btn').addEventListener('click', loadStep);
+            document.getElementById('analyze-tone-btn').addEventListener('click', getToneAnalysisFromAI);
+            
+            document.getElementById('generate-scenario-btn').addEventListener('click', async () => {
+                const topic = document.getElementById('scenario-topic').value.trim();
+                if (!topic) return;
+                const prompt = `Generate a new customer service empathy training scenario for Tempo.fit based on the topic: "${topic}". The output must be a valid JSON object with: "title", "description", "persona", and a 3-step "dialogue_tree" where the last step is a happy resolution.`;
+                const schema = { type: "OBJECT", properties: { "title": { "type": "STRING" }, "description": { "type": "STRING" }, "persona": { "type": "STRING" }, "dialogue_tree": { "type": "ARRAY", "items": { "type": "OBJECT", "properties": { "customer": { "type": "STRING" } } } } }, required: ["title", "description", "persona", "dialogue_tree"] };
+                const newScenario = await getFromAI(prompt, schema);
+                const generateBtn = document.getElementById('generate-scenario-btn');
+                const originalText = generateBtn.textContent;
+                if (newScenario && newScenario.dialogue_tree.length >= 3) {
+                    const { error } = await db.from('scenarios').insert({ ...newScenario, author_id: userId });
+                    if (error) {
+                        console.error("Error saving new scenario:", error.message);
+                        generateBtn.textContent = 'Save Failed!';
+                        setTimeout(() => { generateBtn.textContent = originalText; }, 2000);
+                    } else {
+                        generateBtn.textContent = 'Saved!';
+                        setTimeout(() => { generateBtn.textContent = originalText; showView('mainMenu'); }, 1500);
+                    }
+                } else {
+                    generateBtn.textContent = 'Generation Failed!';
+                    setTimeout(() => { generateBtn.textContent = originalText; }, 2000);
+                }
+            });
+        }
+
+        // --- AUTHENTICATION ---
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const authError = document.getElementById('auth-error');
+
+        document.getElementById('show-register').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
         });
-      });
-    }
 
-    async function showAdminSessionList() {
-      alert("Viewing all user sessions is not yet implemented in this version.");
-    }
-
-    function setupEventListeners() {
-      document.querySelectorAll('[data-action]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const action = e.currentTarget.dataset.action;
-          if (action === 'practice') startRandomScenario();
-          else if (action === 'create') showView('createScenario');
-          else if (action === 'history') showHistoryList();
-          else if (action === 'assigned') showAssignedScenarios();
-          else if (action === 'quick-fire') startAIQuickFireRound();
-          else if (action === 'admin-users') showAdminUserList();
-          else if (action === 'admin-sessions') showAdminSessionList();
+        document.getElementById('show-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
         });
-      });
 
-      document.querySelectorAll('.back-to-menu-btn').forEach(btn => {
-        btn.addEventListener('click', () => showView('mainMenu'));
-      });
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            authError.textContent = '';
+            const { data, error } = await db.auth.signUp({ email, password });
+            if (error) {
+                authError.textContent = error.message;
+            } else {
+                // Also create a user record in the public users table for the admin
+                const { error: insertError } = await db.from('users').insert({ id: data.user.id, email: data.user.email });
+                if (insertError) console.error("Error creating public user record:", insertError.message);
+            }
+        });
 
-      document.getElementById('admin-dashboard-btn').addEventListener('click', () => showView('adminDashboard'));
-      document.getElementById('back-to-admin-dash-btn')?.addEventListener('click', () => showView('adminDashboard'));
-      document.getElementById('back-to-history-list-btn').addEventListener('click', showHistoryList);
-      document.getElementById('restart-scenario-btn').addEventListener('click', () => startScenario(currentScenario));
-      document.getElementById('choose-another-scenario-btn').addEventListener('click', startRandomScenario);
-      document.getElementById('submit-response-btn').addEventListener('click', handleSubmitResponse);
-      document.getElementById('next-btn').addEventListener('click', loadStep);
-      document.getElementById('analyze-tone-btn').addEventListener('click', getToneAnalysisFromAI);
-    }
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            authError.textContent = '';
+            const { error } = await db.auth.signInWithPassword({ email, password });
+            if (error) authError.textContent = error.message;
+        });
 
-    // Initialize listeners after DOM is ready (module scripts run after parse)
-    setupEventListeners();
-  </script>
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await db.auth.signOut();
+        });
+
+        db.auth.onAuthStateChange((event, session) => {
+            if (session && session.user) {
+                const user = session.user;
+                userId = user.id;
+                isAdmin = user.email === 'admin@tempo.fit';
+                document.getElementById('logout-btn').classList.remove('hidden');
+                document.getElementById('header-subtitle').textContent = `Welcome, ${user.email}`;
+                if (isAdmin) {
+                    document.getElementById('admin-dashboard-btn').classList.remove('hidden');
+                }
+                showView('mainMenu');
+            } else {
+                userId = null;
+                isAdmin = false;
+                document.getElementById('logout-btn').classList.add('hidden');
+                document.getElementById('header-subtitle').textContent = "Practice real-world Tempo.fit customer scenarios.";
+                document.getElementById('admin-dashboard-btn').classList.add('hidden');
+                showView('auth');
+            }
+        });
+
+        setupEventListeners();
+    </script>
 </body>
 </html>
-
