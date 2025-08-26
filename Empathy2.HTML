@@ -262,7 +262,7 @@
             let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
             const payload = { contents: chatHistory };
             if (schema) payload.generationConfig = { responseMimeType: "application/json", responseSchema: schema };
-            const apiKey = "";
+            const apiKey = "AIzaSyAhYDpHKXbTYQeGW3A-3g47XXDMGyB8NU0";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             try {
                 let response; let delay = 1000;
@@ -812,3 +812,4 @@
     </script>
 </body>
 </html>
+
