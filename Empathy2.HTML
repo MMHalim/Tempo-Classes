@@ -84,7 +84,7 @@
                     <p class="text-gray-600">Face unique, AI-generated single-step problems.</p>
                 </button>
                 <button data-action="create" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
-                    <h3 class="text-xl font-bold mb-2 text-gray-800">✍️ Create a Scenario</h3>
+                    <h3 class="text-xl font-bold mb-2 text-gray-800"✍️ Create a Scenario</h3>
                     <p class="text-gray-600">Design a new custom scenario for your own practice.</p>
                 </button>
                  <button data-action="history" class="card bg-white p-6 rounded-lg cursor-pointer text-left col-span-1 md:col-span-2">
@@ -257,32 +257,87 @@
         }
 
         async function getFromAI(prompt, schema = null) {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const modalLoading = document.getElementById('modal-loading');
             loadingIndicator.classList.remove('hidden');
-            document.getElementById('modal-loading')?.classList.remove('hidden');
-            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-            const payload = { contents: chatHistory };
-            if (schema) payload.generationConfig = { responseMimeType: "application/json", responseSchema: schema };
+            if (modalLoading) modalLoading.classList.remove('hidden');
+            
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+            if (schema) {
+                payload.generationConfig = {
+                    responseMimeType: "application/json",
+                    responseSchema: schema
+                };
+            }
+            
             const apiKey = "AIzaSyAhYDpHKXbTYQeGW3A-3g47XXDMGyB8NU0";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
             try {
-                let response; let delay = 1000;
-                for (let i = 0; i < 5; i++) {
-                    response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (response.ok) break;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    delay *= 2;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error("API Error Response:", errorBody);
+                    throw new Error(`API request failed with status ${response.status}`);
                 }
-                if (!response.ok) throw new Error(`API request failed`);
+                
                 const result = await response.json();
-                const rawJson = result.candidates[0].content.parts[0].text;
-                return JSON.parse(rawJson.replace(/```json/g, '').replace(/```/g, '').trim());
+
+                if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                    const rawJson = result.candidates[0].content.parts[0].text;
+                    return JSON.parse(rawJson.replace(/```json/g, '').replace(/```/g, '').trim());
+                } else {
+                     console.error("Invalid API response structure:", result);
+                     if (result.promptFeedback) {
+                        console.error("Prompt Feedback:", result.promptFeedback);
+                     }
+                    return null;
+                }
             } catch (error) {
                 console.error("Error with AI call:", error);
                 return null;
             } finally {
                 loadingIndicator.classList.add('hidden');
-                document.getElementById('modal-loading')?.classList.add('hidden');
+                if (modalLoading) modalLoading.classList.add('hidden');
             }
+        }
+
+        function saveSessionState() {
+            if (!currentScenario) return;
+            const state = { currentScenario, currentStep, empathyScore, sessionInteractions };
+            sessionStorage.setItem('inProgressSession', JSON.stringify(state));
+        }
+
+        function clearSessionState() {
+            sessionStorage.removeItem('inProgressSession');
+        }
+
+        function loadSessionState() {
+            const savedStateJSON = sessionStorage.getItem('inProgressSession');
+            if (savedStateJSON) {
+                try {
+                    const savedState = JSON.parse(savedStateJSON);
+                    currentScenario = savedState.currentScenario;
+                    currentStep = savedState.currentStep;
+                    empathyScore = savedState.empathyScore;
+                    sessionInteractions = savedState.sessionInteractions;
+                    showView('simulator');
+                    loadStep();
+                    return true;
+                } catch (e) {
+                    console.error("Failed to parse saved session state:", e);
+                    clearSessionState();
+                    return false;
+                }
+            }
+            return false;
         }
 
         async function getAllScenarios() {
@@ -324,6 +379,7 @@
             sessionInteractions = [];
             showView('simulator');
             loadStep();
+            saveSessionState();
         }
 
         function loadStep() {
@@ -382,6 +438,7 @@
             empathyScore = Math.max(0, Math.min(100, empathyScore + scoreChange));
             updateEmpathyMeter();
             currentStep++;
+            saveSessionState();
             const nextBtn = document.getElementById('next-btn');
             if (currentScenario.title.includes("AI Quick-Fire")) {
                 nextBtn.textContent = "Next AI Problem";
@@ -401,6 +458,7 @@
         }
 
         async function showCompletionScreen() {
+            clearSessionState();
             const finalFeedback = document.getElementById('final-feedback');
             if (empathyScore > 75) finalFeedback.textContent = "Outstanding! You consistently demonstrated strong empathy and effective communication.";
             else if (empathyScore > 40) finalFeedback.textContent = "Good work. You navigated the conversation well. Continue to focus on consistently validating feelings.";
@@ -664,14 +722,15 @@
             const container = document.getElementById('admin-session-list-container');
             container.innerHTML = '<div class="loader mx-auto"></div>';
             
+            // FIX: Changed to a left join query via the foreign key hint
             const { data, error } = await db.from('sessions').select(`
                 *,
-                users ( email )
+                users!sessions_user_id_fkey(email)
             `).order('completed_at', { ascending: false });
             
             if (error) { 
                 console.error(error); 
-                container.innerHTML = `<p class="text-red-500">Could not load sessions. Make sure RLS is disabled or policies are correct for the 'sessions' and 'users' tables.</p>`; 
+                container.innerHTML = `<p class="text-red-500">Could not load sessions. Error: ${error.message}</p>`; 
                 return; 
             }
 
@@ -706,7 +765,10 @@
             });
             
             document.querySelectorAll('.back-to-menu-btn').forEach(btn => {
-                btn.addEventListener('click', () => showView('mainMenu'));
+                btn.addEventListener('click', () => {
+                    clearSessionState();
+                    showView('mainMenu');
+                });
             });
 
             document.getElementById('admin-dashboard-btn').addEventListener('click', () => showView('adminDashboard'));
@@ -797,10 +859,15 @@
                 if (isAdmin) {
                     document.getElementById('admin-dashboard-btn').classList.remove('hidden');
                 }
-                showView('mainMenu');
+                
+                if (!loadSessionState()) {
+                    showView('mainMenu');
+                }
+
             } else {
                 userId = null;
                 isAdmin = false;
+                clearSessionState();
                 document.getElementById('logout-btn').classList.add('hidden');
                 document.getElementById('header-subtitle').textContent = "Practice real-world Tempo.fit customer scenarios.";
                 document.getElementById('admin-dashboard-btn').classList.add('hidden');
