@@ -84,17 +84,38 @@
                     <p class="text-gray-600">Face unique, AI-generated single-step problems.</p>
                 </button>
                 <button data-action="create" class="card bg-white p-6 rounded-lg cursor-pointer text-left">
-                    <h3 class="text-xl font-bold mb-2 text-gray-800"✍️ Create a Scenario</h3>
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">✍️ Create a Scenario</h3>
                     <p class="text-gray-600">Design a new custom scenario for your own practice.</p>
                 </button>
                  <button data-action="history" class="card bg-white p-6 rounded-lg cursor-pointer text-left col-span-1 md:col-span-2">
                     <h3 class="text-xl font-bold mb-2 text-gray-800">📈 View My History</h3>
                     <p class="text-gray-600">Review your past performance, feedback, and ideal responses.</p>
                 </button>
+                <button data-action="empathy-help" class="card bg-purple-600 text-white p-6 rounded-lg cursor-pointer text-left col-span-1 md:col-span-2">
+                    <h3 class="text-xl font-bold mb-2">🧠 AI Empathy Coach</h3>
+                    <p>Get intelligent, empathetic guidance for a tough customer situation you're facing now.</p>
+                </button>
             </div>
              <button id="admin-dashboard-btn" class="hidden mt-6 card bg-indigo-600 text-white p-4 rounded-lg w-full md:w-1/2 mx-auto">
                 <h3 class="text-xl font-bold">👑 Admin Dashboard</h3>
             </button>
+        </div>
+
+        <!-- Empathy Assistant View -->
+        <div id="empathy-assistant-view" class="hidden bg-white p-8 rounded-2xl shadow-lg">
+            <button class="back-to-menu-btn mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">← Back to Menu</button>
+            <h2 class="text-2xl font-bold mb-4">🧠 AI Empathy Coach</h2>
+            <p class="text-gray-600 mb-4">Describe the tough customer situation you're facing. The AI will analyze the core emotion and provide an intelligence-powered empathy report to help you respond effectively.</p>
+            <label for="situation-description" class="block text-sm font-medium text-gray-700">Customer Situation</label>
+            <textarea id="situation-description" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" rows="4" placeholder="e.g., The customer is angry because their delivery was delayed and missed a birthday."></textarea>
+            <div class="mt-6 flex justify-end">
+                <button id="get-empathy-help-btn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">Get Empathy Report</button>
+            </div>
+            <div id="empathy-help-loading" class="hidden flex-col items-center justify-center mt-4">
+                 <div class="loader"></div>
+                 <p class="text-gray-600 mt-2">Your empathy coach is thinking...</p>
+             </div>
+            <div id="empathy-response-container" class="mt-6 hidden"></div>
         </div>
         
         <!-- Assigned Scenarios View -->
@@ -146,7 +167,11 @@
             </div>
             <p class="text-right text-sm text-gray-500 mb-4">Empathy Meter</p>
             <div id="dialogue-container" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[100px]">
-                <p class="font-semibold text-gray-600 mb-2">Customer says:</p>
+                <p class="font-semibold text-gray-600 mb-2 flex items-center">
+                    Customer says:
+                    <button id="play-audio-btn" class="ml-2 text-xl cursor-pointer hover:scale-110 transition-transform">🔊</button>
+                    <span id="audio-loader" class="hidden ml-2 h-5 w-5 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin"></span>
+                </p>
                 <p id="customer-dialogue" class="text-gray-800"></p>
             </div>
             <div id="response-area">
@@ -180,6 +205,31 @@
                 <button id="restart-scenario-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">Try Again</button>
                 <button id="choose-another-scenario-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg">Another Random Scenario</button>
             </div>
+             <!-- NEW FEATURE START -->
+            <div class="mt-8 border-t pt-6">
+                 <button id="draft-email-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg">✨ Draft Follow-up Email</button>
+            </div>
+            <div id="email-draft-container" class="hidden mt-6 text-left p-4 bg-gray-50 border rounded-lg">
+                <div id="email-draft-loading" class="hidden flex flex-col items-center justify-center py-8">
+                    <div class="loader"></div>
+                    <p class="text-gray-600 mt-2">Drafting email...</p>
+                </div>
+                <div id="email-draft-content" class="hidden">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-lg font-bold text-gray-800">Generated Email Draft</h3>
+                        <button id="copy-email-btn" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded text-sm transition-colors">Copy</button>
+                    </div>
+                    <div class="bg-white p-2 border rounded">
+                        <p class="text-sm font-semibold text-gray-600">Subject:</p>
+                        <input id="email-subject" type="text" class="w-full p-1 border-0 focus:ring-0" readonly>
+                    </div>
+                    <div class="bg-white p-2 border rounded mt-2">
+                         <p class="text-sm font-semibold text-gray-600">Body:</p>
+                        <textarea id="email-body" class="w-full p-1 border-0 focus:ring-0" rows="8" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+            <!-- NEW FEATURE END -->
         </div>
 
         <!-- Admin Dashboard View -->
@@ -247,9 +297,8 @@
             adminUserList: document.getElementById('admin-user-list-view'),
             adminSessionList: document.getElementById('admin-session-list-view'),
             assignedScenarios: document.getElementById('assigned-scenarios-view'),
+            empathyAssistant: document.getElementById('empathy-assistant-view'),
         };
-
-        const loadingIndicator = document.getElementById('loading-indicator');
 
         function showView(viewName) {
             Object.values(views).forEach(view => view && view.classList.add('hidden'));
@@ -259,8 +308,11 @@
         async function getFromAI(prompt, schema = null) {
             const loadingIndicator = document.getElementById('loading-indicator');
             const modalLoading = document.getElementById('modal-loading');
-            loadingIndicator.classList.remove('hidden');
+            const empathyHelpLoading = document.getElementById('empathy-help-loading');
+            
+            if(loadingIndicator) loadingIndicator.classList.remove('hidden');
             if (modalLoading) modalLoading.classList.remove('hidden');
+            if (empathyHelpLoading) empathyHelpLoading.classList.remove('hidden');
             
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }]
@@ -296,7 +348,7 @@
                 } else {
                      console.error("Invalid API response structure:", result);
                      if (result.promptFeedback) {
-                        console.error("Prompt Feedback:", result.promptFeedback);
+                         console.error("Prompt Feedback:", result.promptFeedback);
                      }
                     return null;
                 }
@@ -304,19 +356,140 @@
                 console.error("Error with AI call:", error);
                 return null;
             } finally {
-                loadingIndicator.classList.add('hidden');
+                if(loadingIndicator) loadingIndicator.classList.add('hidden');
                 if (modalLoading) modalLoading.classList.add('hidden');
+                if (empathyHelpLoading) empathyHelpLoading.classList.add('hidden');
             }
         }
 
+        // --- TTS Functions ---
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            const blockAlign = numChannels * (bitsPerSample / 8);
+            const dataSize = pcmData.length * 2;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitsPerSample, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i++, offset += 2) {
+                view.setInt16(offset, pcmData[i], true);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+        
+        async function getAudioFromAI(text, persona) {
+            const audioBtn = document.getElementById('play-audio-btn');
+            const audioLoader = document.getElementById('audio-loader');
+            audioBtn.classList.add('hidden');
+            audioLoader.classList.remove('hidden');
+
+            const emotions = ["frustrated", "annoyed", "anxious", "confused", "excited", "happy", "disappointed", "upset"];
+            let foundEmotion = "neutral";
+            for (const emotion of emotions) {
+                if (persona.toLowerCase().includes(emotion)) {
+                    foundEmotion = emotion;
+                    break;
+                }
+            }
+            
+            const prompt = `Say in a ${foundEmotion} tone: ${text}`;
+            
+            const payload = {
+                model: "gemini-2.5-flash-preview-tts",
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                }
+            };
+
+            const apiKey = "AIzaSyAhYDpHKXbTYQeGW3A-3g47XXDMGyB8NU0";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+                
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    if (!sampleRateMatch) throw new Error("Could not parse sample rate from mime type.");
+                    
+                    const sampleRate = parseInt(sampleRateMatch[1], 10);
+                    const pcmDataBuffer = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmDataBuffer);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    new Audio(audioUrl).play();
+                } else {
+                    console.error("Audio data not found in response", result);
+                }
+
+            } catch (error) {
+                console.error("Error generating or playing audio:", error);
+            } finally {
+                audioLoader.classList.add('hidden');
+                audioBtn.classList.remove('hidden');
+            }
+        }
+
+
         function saveSessionState() {
             if (!currentScenario) return;
-            const state = { currentScenario, currentStep, empathyScore, sessionInteractions };
+            const state = { 
+                currentScenario, 
+                currentStep, 
+                empathyScore, 
+                sessionInteractions,
+                responseText: document.getElementById('user-response').value 
+            };
             sessionStorage.setItem('inProgressSession', JSON.stringify(state));
         }
 
         function clearSessionState() {
             sessionStorage.removeItem('inProgressSession');
+            currentScenario = null;
         }
 
         function loadSessionState() {
@@ -330,6 +503,7 @@
                     sessionInteractions = savedState.sessionInteractions;
                     showView('simulator');
                     loadStep();
+                    document.getElementById('user-response').value = savedState.responseText || '';
                     return true;
                 } catch (e) {
                     console.error("Failed to parse saved session state:", e);
@@ -406,6 +580,9 @@
             document.getElementById('scenario-title').textContent = currentScenario.title;
             document.getElementById('customer-persona').textContent = currentScenario.persona;
             document.getElementById('customer-dialogue').textContent = stepData.customer;
+            
+            document.getElementById('play-audio-btn').onclick = () => getAudioFromAI(stepData.customer, currentScenario.persona);
+
             updateEmpathyMeter();
         }
 
@@ -459,6 +636,9 @@
 
         async function showCompletionScreen() {
             clearSessionState();
+            document.getElementById('email-draft-container').classList.add('hidden');
+            document.getElementById('email-draft-content').classList.add('hidden');
+            document.getElementById('email-draft-loading').classList.add('hidden');
             const finalFeedback = document.getElementById('final-feedback');
             if (empathyScore > 75) finalFeedback.textContent = "Outstanding! You consistently demonstrated strong empathy and effective communication.";
             else if (empathyScore > 40) finalFeedback.textContent = "Good work. You navigated the conversation well. Continue to focus on consistently validating feelings.";
@@ -533,42 +713,79 @@
             document.getElementById('get-summary-btn').onclick = () => getHistorySummaryFromAI(sessionData);
 
              if(fromAdmin) {
-                container.querySelectorAll('.edit-feedback-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const index = e.target.dataset.interactionIndex;
-                        const sessionId = e.target.dataset.sessionId;
-                        const feedbackP = document.getElementById(`feedback-text-${sessionId}-${index}`);
-                        const currentFeedback = sessionData.interactions[index].aiFeedback;
-                        feedbackP.innerHTML = `<textarea class="w-full border rounded p-1">${currentFeedback}</textarea><button data-save-index="${index}" data-session-id="${sessionId}" class="save-feedback-btn text-sm bg-green-500 text-white p-1 rounded mt-1">Save</button>`;
-                        
-                        feedbackP.querySelector('.save-feedback-btn').addEventListener('click', async (saveEvent) => {
-                            const newFeedback = saveEvent.target.previousElementSibling.value;
-                            sessionData.interactions[index].aiFeedback = newFeedback;
-                            
-                            const { error } = await db.from('sessions').update({ interactions: sessionData.interactions }).eq('id', sessionId);
+                 container.querySelectorAll('.edit-feedback-btn').forEach(btn => {
+                     btn.addEventListener('click', (e) => {
+                         const index = e.target.dataset.interactionIndex;
+                         const sessionId = e.target.dataset.sessionId;
+                         const feedbackP = document.getElementById(`feedback-text-${sessionId}-${index}`);
+                         const currentFeedback = sessionData.interactions[index].aiFeedback;
+                         feedbackP.innerHTML = `<textarea class="w-full border rounded p-1">${currentFeedback}</textarea><button data-save-index="${index}" data-session-id="${sessionId}" class="save-feedback-btn text-sm bg-green-500 text-white p-1 rounded mt-1">Save</button>`;
+                         
+                         feedbackP.querySelector('.save-feedback-btn').addEventListener('click', async (saveEvent) => {
+                             const newFeedback = saveEvent.target.previousElementSibling.value;
+                             sessionData.interactions[index].aiFeedback = newFeedback;
+                             
+                             const { error } = await db.from('sessions').update({ interactions: sessionData.interactions }).eq('id', sessionId);
 
-                            if (error) {
-                                console.error("Failed to save feedback:", error.message);
-                                feedbackP.innerHTML = `<strong class="text-gray-700">AI Feedback (Score: ${sessionData.interactions[index].aiScore}):</strong> ${currentFeedback} <span class="text-red-500">(Save failed)</span>`;
-                            } else {
-                                feedbackP.innerHTML = `<strong class="text-gray-700">AI Feedback (Score: ${sessionData.interactions[index].aiScore}):</strong> ${newFeedback}`;
-                            }
-                        });
-                    });
-                });
-            }
+                             if (error) {
+                                 console.error("Failed to save feedback:", error.message);
+                                 feedbackP.innerHTML = `<strong class="text-gray-700">AI Feedback (Score: ${sessionData.interactions[index].aiScore}):</strong> ${currentFeedback} <span class="text-red-500">(Save failed)</span>`;
+                             } else {
+                                 feedbackP.innerHTML = `<strong class="text-gray-700">AI Feedback (Score: ${sessionData.interactions[index].aiScore}):</strong> ${newFeedback}`;
+                             }
+                         });
+                     });
+                 });
+             }
         }
         
         async function getToneAnalysisFromAI() {
             const userResponse = document.getElementById('user-response');
             const toneAnalysisContainer = document.getElementById('tone-analysis-container');
             const responseText = userResponse.value.trim();
-            if (!responseText) return;
+            if (!responseText) {
+                userResponse.classList.add('border-red-500', 'placeholder-red-500');
+                userResponse.placeholder = "Please write a response before analyzing the tone.";
+                setTimeout(() => {
+                    userResponse.classList.remove('border-red-500', 'placeholder-red-500');
+                    userResponse.placeholder = "Type your empathetic response here...";
+                }, 3000);
+                return;
+            }
             const prompt = `As a customer service coach, analyze the tone of this agent's response. Customer says: "${currentScenario.dialogue_tree[currentStep].customer}". Agent's draft response: "${responseText}". Provide a one-sentence tone analysis and a one-sentence suggestion for improvement if needed. Return a JSON object: { "analysis": "<string>", "suggestion": "<string>" }`;
             const schema = { type: "OBJECT", properties: { "analysis": { "type": "STRING" }, "suggestion": { "type": "STRING" } }, required: ["analysis", "suggestion"] };
             const result = await getFromAI(prompt, schema);
             toneAnalysisContainer.innerHTML = result ? `<div class="p-2 bg-indigo-50 border border-indigo-200 rounded-md text-sm"><p><strong>Tone Analysis:</strong> ${result.analysis}</p><p><strong>Suggestion:</strong> ${result.suggestion}</p></div>` : `<p class="text-sm text-red-500">Could not analyze tone.</p>`;
             toneAnalysisContainer.classList.remove('hidden');
+        }
+
+        async function getSuggestionsFromAI() {
+            const userResponse = document.getElementById('user-response');
+            const suggestionsContainer = document.getElementById('suggestions-container');
+            const responseText = userResponse.value.trim();
+            if (!responseText) {
+                userResponse.classList.add('border-red-500', 'placeholder-red-500');
+                userResponse.placeholder = "Please write a response to get suggestions.";
+                setTimeout(() => {
+                    userResponse.classList.remove('border-red-500', 'placeholder-red-500');
+                    userResponse.placeholder = "Type your empathetic response here...";
+                }, 3000);
+                return;
+            }
+            const prompt = `You are a customer service expert for Tempo.fit. The customer said: "${currentScenario.dialogue_tree[currentStep].customer}". The agent has drafted this response: "${responseText}". Provide three distinct, alternative empathetic phrases or opening lines the agent could use. Return a JSON object: { "suggestions": ["<suggestion 1>", "<suggestion 2>", "<suggestion 3>"] }`;
+            const schema = { type: "OBJECT", properties: { "suggestions": { "type": "ARRAY", "items": { "type": "STRING" } } }, required: ["suggestions"] };
+            const result = await getFromAI(prompt, schema);
+            if (result && result.suggestions) {
+                 suggestionsContainer.innerHTML = `<div class="p-2 bg-blue-50 border border-blue-200 rounded-md text-sm">
+                    <strong>Suggestions:</strong>
+                    <ul class="list-disc list-inside mt-1">
+                        ${result.suggestions.map(s => `<li>${s}</li>`).join('')}
+                    </ul>
+                </div>`;
+            } else {
+                suggestionsContainer.innerHTML = `<p class="text-sm text-red-500">Could not get suggestions.</p>`;
+            }
+            suggestionsContainer.classList.remove('hidden');
         }
 
         async function getHistorySummaryFromAI(sessionData) {
@@ -580,6 +797,73 @@
             const schema = { type: "OBJECT", properties: { "summary": { "type": "STRING" }, "tip": { "type": "STRING" } }, required: ["summary", "tip"] };
             const result = await getFromAI(prompt, schema);
             summaryContainer.innerHTML = result ? `<p><strong>Summary:</strong> ${result.summary}</p><p><strong>Actionable Tip:</strong> ${result.tip}</p>` : `<p class="text-red-500">Could not generate a summary.</p>`;
+        }
+
+        async function getEmpathyHelpFromAI() {
+            const situationDescription = document.getElementById('situation-description').value.trim();
+            const responseContainer = document.getElementById('empathy-response-container');
+            if (!situationDescription) {
+                responseContainer.innerHTML = `<p class="text-red-500">Please describe the situation first.</p>`;
+                responseContainer.classList.remove('hidden');
+                return;
+            }
+            responseContainer.classList.add('hidden');
+
+            const prompt = `You are an expert empathy coach for customer service agents at Tempo.fit. An agent is facing a tough situation: "${situationDescription}".
+
+            Your task is to provide a detailed, intelligence-powered empathy report to help the agent handle this with maximum emotional intelligence. Do not provide solutions.
+
+            Analyze the situation and return a JSON object with the following structure:
+            1.  "key_emotion": A single word or short phrase identifying the customer's core emotion (e.g., "Frustration", "Feeling unheard", "Disappointment").
+            2.  "empathetic_phrases": An array of three distinct, professional, and highly empathetic phrases the agent can use throughout the conversation to validate the customer's feelings.
+            3.  "assurance_statement": A single, powerful statement that validates their feeling and assures them you're there to help, without promising a specific outcome.
+            4.  "coach_tip": A brief, actionable tip for the agent on the mindset they should adopt for this specific interaction.`;
+            
+            const schema = { 
+                type: "OBJECT", 
+                properties: { 
+                    "key_emotion": { "type": "STRING" }, 
+                    "empathetic_phrases": { "type": "ARRAY", "items": { "type": "STRING" } },
+                    "assurance_statement": { "type": "STRING" },
+                    "coach_tip": { "type": "STRING" }
+                }, 
+                required: ["key_emotion", "empathetic_phrases", "assurance_statement", "coach_tip"] 
+            };
+            
+            const result = await getFromAI(prompt, schema);
+
+            if (result) {
+                responseContainer.innerHTML = `
+                    <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <h3 class="text-lg font-bold text-purple-800 mb-3">AI Empathy Coach Report</h3>
+
+                        <div class="mb-4">
+                            <p class="font-semibold text-gray-700">Core Customer Emotion:</p>
+                            <p class="text-purple-700 italic">${result.key_emotion}</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <p class="font-semibold text-gray-700">Ways to Show Empathy:</p>
+                            <ul class="list-disc list-inside text-purple-700 space-y-1 mt-1">
+                                ${result.empathetic_phrases.map(line => `<li>${line}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="mb-4">
+                            <p class="font-semibold text-gray-700">Core Assurance Statement:</p>
+                            <p class="text-purple-700">"${result.assurance_statement}"</p>
+                        </div>
+
+                        <div class="p-3 bg-indigo-100 rounded">
+                            <p class="font-semibold text-indigo-800">💡 Coach's Tip for You:</p>
+                            <p class="text-indigo-700">${result.coach_tip}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                 responseContainer.innerHTML = `<p class="text-red-500">Sorry, I couldn't generate a response. Please try rephrasing your situation.</p>`;
+            }
+            responseContainer.classList.remove('hidden');
         }
 
         async function startAIQuickFireRound() {
@@ -722,7 +1006,6 @@
             const container = document.getElementById('admin-session-list-container');
             container.innerHTML = '<div class="loader mx-auto"></div>';
             
-            // FIX: Changed to a left join query via the foreign key hint
             const { data, error } = await db.from('sessions').select(`
                 *,
                 users!sessions_user_id_fkey(email)
@@ -748,7 +1031,80 @@
                 container.appendChild(item);
             });
         }
+        
+        async function draftFollowUpEmail() {
+            const emailContainer = document.getElementById('email-draft-container');
+            const emailLoading = document.getElementById('email-draft-loading');
+            const emailContent = document.getElementById('email-draft-content');
+            
+            emailContainer.classList.remove('hidden');
+            emailContent.classList.add('hidden');
+            emailLoading.classList.remove('hidden');
+            emailLoading.classList.add('flex');
+            emailLoading.classList.remove('hidden');
 
+            const conversationHistory = sessionInteractions.map(interaction => 
+                `Customer: "${interaction.customerSays}"\nAgent: "${interaction.userResponse}"`
+            ).join('\n\n');
+
+            const prompt = `You are a professional and empathetic customer support agent for Tempo.fit. Based on the following scenario and conversation, write a concise follow-up email to the customer. The email should confirm the resolution and reinforce a positive relationship.
+            
+            **Scenario Title:** ${currentScenario.title}
+            **Customer Persona:** ${currentScenario.persona}
+            
+            **Conversation History:**
+            ${conversationHistory}
+            
+            Return the email as a JSON object with "subject" and "body" keys. The body should be plain text, ready to be sent.`;
+            
+            const schema = { 
+                type: "OBJECT", 
+                properties: { 
+                    "subject": { "type": "STRING" }, 
+                    "body": { "type": "STRING" } 
+                }, 
+                required: ["subject", "body"] 
+            };
+
+            const result = await getFromAI(prompt, schema);
+
+            emailLoading.classList.add('hidden');
+            emailLoading.classList.remove('flex');
+            emailContent.classList.remove('hidden');
+
+            if (result && result.subject && result.body) {
+                document.getElementById('email-subject').value = result.subject;
+                document.getElementById('email-body').value = result.body;
+            } else {
+                document.getElementById('email-subject').value = "Error";
+                document.getElementById('email-body').value = "Could not generate an email draft. Please try again.";
+            }
+        }
+
+        function copyEmailToClipboard() {
+            const subject = document.getElementById('email-subject').value;
+            const body = document.getElementById('email-body').value;
+            const fullEmailText = `Subject: ${subject}\n\n${body}`;
+            const copyBtn = document.getElementById('copy-email-btn');
+            
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = fullEmailText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            tempTextArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+            } catch (err) {
+                console.error('Oops, unable to copy', err);
+                copyBtn.textContent = 'Error!';
+                 setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+            }
+
+            document.body.removeChild(tempTextArea);
+        }
 
         function setupEventListeners() {
             document.querySelectorAll('[data-action]').forEach(btn => {
@@ -761,6 +1117,7 @@
                     else if (action === 'quick-fire') startAIQuickFireRound();
                     else if (action === 'admin-users') showAdminUserList();
                     else if (action === 'admin-sessions') showAdminSessionList();
+                    else if (action === 'empathy-help') showView('empathyAssistant');
                 });
             });
             
@@ -771,6 +1128,9 @@
                 });
             });
 
+            document.getElementById('get-empathy-help-btn').addEventListener('click', getEmpathyHelpFromAI);
+            document.getElementById('draft-email-btn').addEventListener('click', draftFollowUpEmail);
+            document.getElementById('copy-email-btn').addEventListener('click', copyEmailToClipboard);
             document.getElementById('admin-dashboard-btn').addEventListener('click', () => showView('adminDashboard'));
             document.getElementById('back-to-admin-dash-btn')?.addEventListener('click', () => showView('adminDashboard'));
             document.getElementById('back-to-admin-dash-btn2')?.addEventListener('click', () => showView('adminDashboard'));
@@ -780,6 +1140,8 @@
             document.getElementById('submit-response-btn').addEventListener('click', handleSubmitResponse);
             document.getElementById('next-btn').addEventListener('click', loadStep);
             document.getElementById('analyze-tone-btn').addEventListener('click', getToneAnalysisFromAI);
+            document.getElementById('get-suggestions-btn').addEventListener('click', getSuggestionsFromAI);
+            document.getElementById('user-response').addEventListener('input', saveSessionState);
             
             document.getElementById('generate-scenario-btn').addEventListener('click', async () => {
                 const topic = document.getElementById('scenario-topic').value.trim();
@@ -846,6 +1208,7 @@
         });
 
         document.getElementById('logout-btn').addEventListener('click', async () => {
+            clearSessionState();
             await db.auth.signOut();
         });
 
@@ -879,3 +1242,4 @@
     </script>
 </body>
 </html>
+
