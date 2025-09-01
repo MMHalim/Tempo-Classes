@@ -587,19 +587,15 @@
         }
 
         async function handleSubmitResponse() {
-            document.getElementById('loading-indicator').classList.remove('hidden');
             const userResponse = document.getElementById('user-response');
             const responseText = userResponse.value.trim();
-            if (!responseText) {
-                 document.getElementById('loading-indicator').classList.add('hidden');
-                return
-            };
+            if (!responseText) return;
             document.getElementById('response-area').classList.add('hidden');
             const feedbackPrompt = `You are an expert customer service training coach for Tempo.fit. Evaluate a user's response. **Scenario:** ${currentScenario.title} | **Customer's Statement:** "${currentScenario.dialogue_tree[currentStep].customer}" | **User's Response:** "${responseText}". Provide your evaluation as a JSON object: { "score": <integer 0-100>, "feedback": "<concise, constructive feedback>" }`;
             const feedbackSchema = { type: "OBJECT", properties: { "score": { "type": "INTEGER" }, "feedback": { "type": "STRING" } }, required: ["score", "feedback"] };
             const bestAnswerPrompt = `You are a customer service expert for Tempo.fit. **Scenario:** ${currentScenario.title} | **Customer's Statement:** "${currentScenario.dialogue_tree[currentStep].customer}". Provide three distinct, ideal, and empathetic responses a top-tier agent would give. Return a JSON object: { "ideal_responses": ["<response 1>", "<response 2>", "<response 3>"] }`;
             const bestAnswerSchema = { type: "OBJECT", properties: { "ideal_responses": { "type": "ARRAY", "items": { "type": "STRING" } } }, required: ["ideal_responses"] };
-            const [feedbackResult, bestAnswerResult] = await Promise.all([ getFromAI(prompt, feedbackSchema), getFromAI(bestAnswerPrompt, bestAnswerSchema) ]);
+            const [feedbackResult, bestAnswerResult] = await Promise.all([ getFromAI(feedbackPrompt, feedbackSchema), getFromAI(bestAnswerPrompt, bestAnswerSchema) ]);
             handleAIResponse(responseText, feedbackResult, bestAnswerResult);
         }
 
@@ -622,6 +618,9 @@
             saveSessionState();
             const nextBtn = document.getElementById('next-btn');
             if (currentScenario.title.includes("AI Quick-Fire")) {
+                // It's a single-step scenario, so we save it immediately.
+                saveCompletedSession(currentScenario, empathyScore, sessionInteractions);
+                
                 nextBtn.textContent = "Next AI Problem";
                 nextBtn.onclick = startAIQuickFireRound;
                 nextBtn.classList.remove('hidden');
@@ -639,12 +638,12 @@
         }
 
         async function showCompletionScreen() {
-            // First, save the session which requires currentScenario
-            await saveCompletedSession();
-            
-            // THEN clear the state for the next run
-            clearSessionState();
+            // Capture the state before clearing it
+            const scenarioToSave = currentScenario;
+            const scoreToSave = empathyScore;
+            const interactionsToSave = [...sessionInteractions];
 
+            clearSessionState();
             document.getElementById('email-draft-container').classList.add('hidden');
             document.getElementById('email-draft-content').classList.add('hidden');
             document.getElementById('email-draft-loading').classList.add('hidden');
@@ -653,15 +652,16 @@
             else if (empathyScore > 40) finalFeedback.textContent = "Good work. You navigated the conversation well. Continue to focus on consistently validating feelings.";
             else finalFeedback.textContent = "That was a challenging scenario. Remember to always start by acknowledging the customer's emotions. Give it another try!";
             showView('completion');
+            await saveCompletedSession(scenarioToSave, scoreToSave, interactionsToSave);
         }
 
-        async function saveCompletedSession() {
-            if (!userId || sessionInteractions.length === 0 || !currentScenario) return;
+        async function saveCompletedSession(scenario, score, interactions) {
+            if (!userId || !scenario || interactions.length === 0) return;
             const { error } = await db.from('sessions').insert({ 
                 user_id: userId, 
-                scenario_title: currentScenario.title, 
-                final_empathy_score: Math.round(empathyScore), 
-                interactions: sessionInteractions 
+                scenario_title: scenario.title, 
+                final_empathy_score: Math.round(score), 
+                interactions: interactions
             });
             if (error) console.error("Error saving session:", error.message);
         }
@@ -721,29 +721,29 @@
             document.getElementById('get-summary-btn').onclick = () => getHistorySummaryFromAI(sessionData);
 
              if(fromAdmin) {
-                 container.querySelectorAll('.edit-feedback-btn').forEach(btn => {
-                     btn.addEventListener('click', (e) => {
-                         const index = e.target.dataset.interactionIndex;
-                         const sessionId = e.target.dataset.sessionId;
-                         const feedbackP = document.getElementById(`feedback-text-${sessionId}-${index}`);
-                         const currentFeedback = sessionData.interactions[index].aiFeedback;
-                         feedbackP.innerHTML = `<textarea class="w-full border rounded p-1">${currentFeedback}</textarea><button data-save-index="${index}" data-session-id="${sessionId}" class="save-feedback-btn text-sm bg-green-500 text-white p-1 rounded mt-1">Save</button>`;
-                         
-                         feedbackP.querySelector('.save-feedback-btn').addEventListener('click', async (saveEvent) => {
-                             const newFeedback = saveEvent.target.previousElementSibling.value;
-                             sessionData.interactions[index].aiFeedback = newFeedback;
-                             
-                             const { error } = await db.from('sessions').update({ interactions: sessionData.interactions }).eq('id', sessionId);
+                  container.querySelectorAll('.edit-feedback-btn').forEach(btn => {
+                       btn.addEventListener('click', (e) => {
+                           const index = e.target.dataset.interactionIndex;
+                           const sessionId = e.target.dataset.sessionId;
+                           const feedbackP = document.getElementById(`feedback-text-${sessionId}-${index}`);
+                           const currentFeedback = sessionData.interactions[index].aiFeedback;
+                           feedbackP.innerHTML = `<textarea class="w-full border rounded p-1">${currentFeedback}</textarea><button data-save-index="${index}" data-session-id="${sessionId}" class="save-feedback-btn text-sm bg-green-500 text-white p-1 rounded mt-1">Save</button>`;
+                           
+                           feedbackP.querySelector('.save-feedback-btn').addEventListener('click', async (saveEvent) => {
+                               const newFeedback = saveEvent.target.previousElementSibling.value;
+                               sessionData.interactions[index].aiFeedback = newFeedback;
+                               
+                               const { error } = await db.from('sessions').update({ interactions: sessionData.interactions }).eq('id', sessionId);
 
-                             if (error) {
-                                 console.error("Failed to save feedback:", error.message);
-                                 feedbackP.innerHTML = `<strong class="text-gray-700">AI Feedback (Score: ${sessionData.interactions[index].aiScore}):</strong> ${currentFeedback} <span class="text-red-500">(Save failed)</span>`;
-                             } else {
-                                 feedbackP.innerHTML = `<strong class="text-gray-700">AI Feedback (Score: ${sessionData.interactions[index].aiScore}):</strong> ${newFeedback}`;
-                             }
-                         });
-                     });
-                 });
+                               if (error) {
+                                   console.error("Failed to save feedback:", error.message);
+                                   feedbackP.innerHTML = `<strong class="text-gray-700">AI Feedback (Score: ${sessionData.interactions[index].aiScore}):</strong> ${currentFeedback} <span class="text-red-500">(Save failed)</span>`;
+                               } else {
+                                   feedbackP.innerHTML = `<strong class="text-gray-700">AI Feedback (Score: ${sessionData.interactions[index].aiScore}):</strong> ${newFeedback}`;
+                               }
+                           });
+                       });
+                   });
              }
         }
         
@@ -785,11 +785,11 @@
             const result = await getFromAI(prompt, schema);
             if (result && result.suggestions) {
                  suggestionsContainer.innerHTML = `<div class="p-2 bg-blue-50 border border-blue-200 rounded-md text-sm">
-                    <strong>Suggestions:</strong>
-                    <ul class="list-disc list-inside mt-1">
-                        ${result.suggestions.map(s => `<li>${s}</li>`).join('')}
-                    </ul>
-                </div>`;
+                     <strong>Suggestions:</strong>
+                     <ul class="list-disc list-inside mt-1">
+                         ${result.suggestions.map(s => `<li>${s}</li>`).join('')}
+                     </ul>
+                 </div>`;
             } else {
                 suggestionsContainer.innerHTML = `<p class="text-sm text-red-500">Could not get suggestions.</p>`;
             }
